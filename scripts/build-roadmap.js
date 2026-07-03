@@ -28,7 +28,7 @@ function firstLine(body) {
     .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
     .replace(/[`*_]/g, '')
     .trim();
-  return plain.length > 170 ? `${plain.slice(0, 169).trimEnd()}â€¦` : plain;
+  return plain.length > 170 ? `${plain.slice(0, 169).trimEnd()}...` : plain;
 }
 
 // Stable small hash so a label keeps its pill colour between builds.
@@ -99,7 +99,7 @@ ${cols[key].map(card).join('\n')}
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>dbml-diff â€” Public Roadmap</title>
+<title>dbml-diff - Public Roadmap</title>
 <style>
   :root {
     --bg: #f5f6f8; --col-bg: #eceef2; --card-bg: #ffffff; --card-border: #dfe3ea;
@@ -167,7 +167,7 @@ ${cols[key].map(card).join('\n')}
 <div class="wrap">
   <header>
     <h1>dbml-diff <span class="dim">/ public roadmap</span></h1>
-    <p class="sub">What just shipped, what's being worked on, and what's next for the DBML schema-diff CLI and library. Cards link to the GitHub issues where each item is tracked â€” comment there to influence priority.</p>
+    <p class="sub">What just shipped, what's being worked on, and what's next for the DBML schema-diff CLI and library. Cards link to the GitHub issues where each item is tracked - comment there to influence priority.</p>
     <div class="meta">
       <span>last updated: ${stamp}</span>
       <a href="https://www.npmjs.com/package/dbml-diff">npm</a>
