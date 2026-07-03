@@ -1,0 +1,61 @@
+/*
+  SCHEMA DIFF (generated 2026-07-03)
+  __tests__/fixtures/v1.dbml  ->  __tests__/fixtures/v2.dbml
+
+  Table prefixes : NEW · / MOD · / DEL ·
+  Column suffixes: __ADDED / __REMOVED / __RENAMED / __CHANGED
+  MOD tables show only the primary key + changed columns.
+*/
+
+Note diff_summary {
+  '''
+  ## Schema diff: __tests__/fixtures/v1.dbml -> __tests__/fixtures/v2.dbml
+  - Tables added: 1
+  - Tables removed: 1
+  - Tables modified: 4
+
+  **Added**: dbo.PlanKind
+
+  **Removed**: dbo.LegacyLog
+
+  **Modified**: dbo.Shipments, dbo.Subscriptions, dbo.SubscriptionLines, dbo.Refunds
+  '''
+}
+
+////////// MODIFIED TABLES //////////
+
+Table "MOD · dbo.Shipments" {
+  Id UNIQUEIDENTIFIER [pk, note: 'unchanged columns omitted']
+  "CarrierLabel__REMOVED" NVARCHAR(200) [note: 'REMOVED']
+  "CarrierTag__REMOVED" NVARCHAR(50) [note: 'REMOVED']
+}
+
+Table "MOD · dbo.Subscriptions" {
+  Id UNIQUEIDENTIFIER [pk, note: 'unchanged columns omitted']
+  "PlanKindId__ADDED" INT [not null, note: 'ADDED']
+  "EnrolledOn__CHANGED" DATETIME [note: 'CHANGED: was NOT NULL, now nullable']
+}
+
+Table "MOD · dbo.SubscriptionLines" {
+  Id UNIQUEIDENTIFIER [pk, note: 'unchanged columns omitted']
+  "GeoZoneId__RENAMED" INT [note: 'RENAMED from ZoneId (heuristic - verify)']
+  "Surcharge__CHANGED" DECIMAL(11,8) [note: 'CHANGED: was NOT NULL, now nullable']
+}
+
+Table "MOD · dbo.Refunds" {
+  Id UNIQUEIDENTIFIER [pk, note: 'unchanged columns omitted']
+  "ProcessedOn__CHANGED" BIGINT [note: 'CHANGED: type DATETIME -> BIGINT']
+}
+
+////////// ADDED TABLES //////////
+
+Table "NEW · dbo.PlanKind" {
+  Id INT [pk, note: 'NEW TABLE - 3 columns']
+}
+
+////////// REMOVED TABLES //////////
+
+Table "DEL · dbo.LegacyLog" {
+  Id INT [pk, note: 'TABLE REMOVED']
+  Payload NVARCHAR(MAX)
+}
