@@ -19,7 +19,7 @@ The visual diff shows *only what changed* — added, removed, and modified table
 
 ## Why
 
-If you keep your database schema as DBML in version control, `git diff` between two versions is line-noise: attribute reordering, whitespace, and hundreds of unchanged lines drown the handful of real changes. dbdiagram.io has no built-in version compare, and existing schema-diff tools target live databases, not DBML files. `dbml-diff` compares the two documents *structurally* — tables, columns, types, nullability, primary keys — and tells you exactly what changed. Related upstream issue: [holistics/dbml#175](https://github.com/holistics/dbml/issues/175).
+If you keep your database schema as DBML in version control, `git diff` between two versions is line-noise: attribute reordering, whitespace, and hundreds of unchanged lines drown the handful of real changes. dbdiagram.io has no built-in version compare, and existing schema-diff tools target live databases, not DBML files. `dbml-diff` compares the two documents *structurally* — tables, columns, types, nullability, primary keys — and tells you exactly what changed. Upstream proposal: [holistics/dbml#938](https://github.com/holistics/dbml/issues/938), which generalises the long-standing [#175](https://github.com/holistics/dbml/issues/175).
 
 ## Install
 
