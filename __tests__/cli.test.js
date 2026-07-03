@@ -77,10 +77,19 @@ describe('CLI', () => {
     expect(res.stderr).toContain('invalid --format');
   });
 
-  test('--help exits 0 and prints usage', () => {
+  test('--help exits 0 and prints usage with examples', () => {
     const res = run('--help');
     expect(res.status).toBe(0);
     expect(res.stdout).toContain('Usage: dbml-diff');
+    expect(res.stdout).toContain('Examples:');
+  });
+
+  test('bare invocation exits 2 and prints the quickstart on stderr', () => {
+    const res = run();
+    expect(res.status).toBe(2);
+    expect(res.stderr).toContain('Usage: dbml-diff');
+    expect(res.stderr).toContain('Examples:');
+    expect(res.stdout).toBe('');
   });
 
   test('--version exits 0 and prints the package version', () => {
