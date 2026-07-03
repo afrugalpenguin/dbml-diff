@@ -19,7 +19,7 @@ The visual diff shows *only what changed* - added, removed, and modified tables,
 
 ## Why
 
-If you keep your database schema as DBML in version control, `git diff` between two versions is line-noise: attribute reordering, whitespace, and hundreds of unchanged lines drown the handful of real changes. dbdiagram.io has no built-in version compare, and existing schema-diff tools target live databases, not DBML files. `dbml-diff` compares the two documents *structurally* â€” tables, columns, types, nullability, primary keys â€” and tells you exactly what changed. Upstream proposal: [holistics/dbml#938](https://github.com/holistics/dbml/issues/938), which generalises the long-standing [#175](https://github.com/holistics/dbml/issues/175).
+If you keep your database schema as DBML in version control, `git diff` between two versions is line-noise: attribute reordering, whitespace, and hundreds of unchanged lines drown the handful of real changes. dbdiagram.io has no built-in version compare, and existing schema-diff tools target live databases, not DBML files. `dbml-diff` compares the two documents *structurally* - tables, columns, types, nullability, primary keys - and tells you exactly what changed. Related upstream issue: [holistics/dbml#175](https://github.com/holistics/dbml/issues/175).
 
 ## Install
 
@@ -54,12 +54,12 @@ The counts summary (`added: N, removed: N, modified: N`) always goes to **stderr
 
 | Marker | Meaning |
 | --- | --- |
-| `NEW Â· ` table name prefix | Table added |
-| `MOD Â· ` table name prefix | Table modified |
-| `DEL Â· ` table name prefix | Table removed |
+| `NEW · ` table name prefix | Table added |
+| `MOD · ` table name prefix | Table modified |
+| `DEL · ` table name prefix | Table removed |
 | `__ADDED` column suffix | Column added to a modified table |
 | `__REMOVED` column suffix | Column removed from a modified table |
-| `__RENAMED` column suffix | Rename candidate (heuristic â€” verify; never merged silently) |
+| `__RENAMED` column suffix | Rename candidate (heuristic - verify; never merged silently) |
 | `__CHANGED` column suffix | Type or nullability changed (detail in the column `note`) |
 
 Modified tables show only their primary key (annotated `unchanged columns omitted`) plus the changed columns. Added tables are stubbed to the PK with a `NEW TABLE - N columns` note by default (`--full-new-tables` emits everything); removed tables are emitted in full. A `Note diff_summary { ... }` block at the top lists the counts and the affected table names.
@@ -69,7 +69,7 @@ Modified tables show only their primary key (annotated `unchanged columns omitte
 1. `dbml-diff old.dbml new.dbml --format dbml -o diff.dbml`
 2. Open [dbdiagram.io](https://dbdiagram.io/d) and create a new diagram.
 3. Paste the contents of `diff.dbml` into the editor.
-4. The diagram now shows only what changed: scan for the `NEW Â·` / `MOD Â·` / `DEL Â·` tables, and hover the annotated columns to read the change notes. With `--colors` (paid tier) the table headers are colour-coded too.
+4. The diagram now shows only what changed: scan for the `NEW ·` / `MOD ·` / `DEL ·` tables, and hover the annotated columns to read the change notes. With `--colors` (paid tier) the table headers are colour-coded too.
 
 ## Programmatic API
 
@@ -114,12 +114,12 @@ Useful for CI gates ("fail the build if the schema changed"):
 
 ## Roadmap
 
-**[Visual public roadmap](https://afrugalpenguin.github.io/dbml-diff/roadmap.html)** â€” what shipped, what's in progress, what's next. Generated from the issue tracker: issues labelled `roadmap` become cards, `status:` labels set the column, closed issues land in Launched.
+**[Visual public roadmap](https://afrugalpenguin.github.io/dbml-diff/roadmap.html)** - what shipped, what's in progress, what's next. Generated from the issue tracker: issues labelled `roadmap` become cards, `status:` labels set the column, closed issues land in Launched.
 
 - Refs / relationship diffing
 - Enum diffing
 - Table group diffing
-- `--format sql` â€” ALTER statement generation (see upstream [holistics/dbml#175](https://github.com/holistics/dbml/issues/175))
+- `--format sql` - ALTER statement generation (see upstream [holistics/dbml#175](https://github.com/holistics/dbml/issues/175))
 
 ## License
 
