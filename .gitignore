@@ -1,6 +1,8 @@
 node_modules/
 coverage/
 *.tgz
+_site/
 
 # Local-only schema files - never commit (contains private schema data)
 testdata/
+Screenshot*.png
