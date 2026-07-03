@@ -1,0 +1,40 @@
+TABLE dbo.Shipments {
+  Id UNIQUEIDENTIFIER [not null]
+  CarrierId UNIQUEIDENTIFIER
+  CarrierLabel NVARCHAR(200)
+  CarrierTag NVARCHAR(50)
+  Freight DECIMAL(24,8)
+  Indexes { Id [pk] }
+}
+
+TABLE dbo.Subscriptions {
+  Id UNIQUEIDENTIFIER [not null]
+  CustomerId UNIQUEIDENTIFIER [not null]
+  EnrolledOn DATETIME [not null]
+  BillingCycleId INT [not null]
+  Indexes { Id [pk] }
+}
+
+TABLE dbo.SubscriptionLines {
+  Id UNIQUEIDENTIFIER [not null]
+  ZoneId INT
+  Surcharge DECIMAL(11,8) [not null]
+  Indexes { Id [pk] }
+}
+
+TABLE dbo.LegacyLog {
+  Id INT [not null]
+  Payload NVARCHAR(MAX)
+  Indexes { Id [pk] }
+}
+
+TABLE dbo.Refunds {
+  Id UNIQUEIDENTIFIER [not null]
+  TicketRef NVARCHAR(50) [not null]
+  ProcessedOn DATETIME
+  Indexes { Id [pk] }
+}
+
+DiagramView Default {
+  *
+}
