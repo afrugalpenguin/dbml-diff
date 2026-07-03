@@ -114,7 +114,7 @@ Useful for CI gates ("fail the build if the schema changed"):
 
 ## Roadmap
 
-**[📍 Visual public roadmap](https://afrugalpenguin.github.io/dbml-diff/roadmap.html)** — what shipped, what's in progress, what's next.
+**[Visual public roadmap](https://afrugalpenguin.github.io/dbml-diff/roadmap.html)** — what shipped, what's in progress, what's next. Generated from the issue tracker: issues labelled `roadmap` become cards, `status:` labels set the column, closed issues land in Launched.
 
 - Refs / relationship diffing
 - Enum diffing
