@@ -26,7 +26,17 @@ Options:
 Exit codes:
   0  schemas are identical
   1  differences found
-  2  error (bad arguments, unreadable file, DBML parse failure)`;
+  2  error (bad arguments, unreadable file, DBML parse failure)
+
+Examples:
+  dbml-diff old.dbml new.dbml
+      human-readable summary of what changed
+
+  dbml-diff old.dbml new.dbml --format dbml -o diff.dbml
+      visual diff - paste diff.dbml into https://dbdiagram.io
+
+  dbml-diff old.dbml new.dbml --format json
+      machine-readable result on stdout (counts stay on stderr)`;
 
 function fail(msg) {
   process.stderr.write(`${msg}\n`);
@@ -77,7 +87,12 @@ function parseOrFail(file, text) {
 }
 
 function main() {
-  const opts = parseArgs(process.argv.slice(2));
+  const argv = process.argv.slice(2);
+  if (argv.length === 0) {
+    process.stderr.write(`${USAGE}\n`);
+    process.exit(2);
+  }
+  const opts = parseArgs(argv);
 
   if (opts.help) {
     process.stdout.write(`${USAGE}\n`);
