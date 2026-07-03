@@ -11,7 +11,7 @@
     "migration"
   ],
   "license": "Apache-2.0",
-  "author": "TODO",
+  "author": "afrugalpenguin",
   "repository": {
     "type": "git",
     "url": "https://github.com/afrugalpenguin/dbml-diff"
