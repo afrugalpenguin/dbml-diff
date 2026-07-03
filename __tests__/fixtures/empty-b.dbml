@@ -1,0 +1,6 @@
+TABLE dbo.Widgets {
+  Id INT [not null]
+  Title NVARCHAR(50)
+  AddedOn DATETIME [not null]
+  Indexes { Id [pk] }
+}

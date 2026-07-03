@@ -1,0 +1,43 @@
+{
+  "name": "dbml-diff",
+  "version": "0.1.0",
+  "description": "Structural diff for DBML schema files - emits text, JSON, or an annotated DBML document that renders as a visual diff in dbdiagram.io",
+  "keywords": [
+    "dbml",
+    "diff",
+    "schema",
+    "database",
+    "dbdiagram",
+    "migration"
+  ],
+  "license": "Apache-2.0",
+  "author": "TODO",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/afrugalpenguin/dbml-diff"
+  },
+  "bugs": {
+    "url": "https://github.com/afrugalpenguin/dbml-diff/issues"
+  },
+  "homepage": "https://github.com/afrugalpenguin/dbml-diff#readme",
+  "main": "lib/index.js",
+  "bin": {
+    "dbml-diff": "bin/dbml-diff.js"
+  },
+  "files": [
+    "lib",
+    "bin"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "test": "jest"
+  },
+  "dependencies": {
+    "@dbml/core": "^8.3.1"
+  },
+  "devDependencies": {
+    "jest": "^30.4.2"
+  }
+}

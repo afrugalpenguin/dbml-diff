@@ -1,0 +1,44 @@
+TABLE dbo.Shipments {
+  Id UNIQUEIDENTIFIER [not null]
+  CarrierId UNIQUEIDENTIFIER
+  Freight DECIMAL(24,8)
+  Indexes { Id [pk] }
+}
+
+TABLE dbo.Subscriptions {
+  Id UNIQUEIDENTIFIER [not null]
+  CustomerId UNIQUEIDENTIFIER [not null]
+  EnrolledOn DATETIME
+  BillingCycleId INT [not null]
+  PlanKindId INT [not null]
+  Indexes { Id [pk] }
+}
+
+TABLE dbo.SubscriptionLines {
+  Id UNIQUEIDENTIFIER [not null]
+  GeoZoneId INT
+  Surcharge DECIMAL(11,8)
+  Indexes { Id [pk] }
+}
+
+TABLE dbo.PlanKind {
+  Id INT [not null]
+  Title NVARCHAR(100) [not null]
+  Sku NVARCHAR(50) [not null]
+  Indexes { Id [pk] }
+}
+
+TABLE dbo.Refunds {
+  Id UNIQUEIDENTIFIER [not null]
+  TicketRef NVARCHAR(50) [not null]
+  ProcessedOn BIGINT
+  Indexes { Id [pk] }
+}
+
+TableGroup "Lookups" [color: #000000] {
+  dbo.PlanKind
+}
+
+DiagramView Default {
+  *
+}

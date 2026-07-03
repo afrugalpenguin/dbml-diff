@@ -1,0 +1,495 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`emit (v1 -> v2 fixtures) emitDbml default matches snapshot 1`] = `
+"/*
+  SCHEMA DIFF (generated 2026-01-01)
+  v1.dbml  ->  v2.dbml
+
+  Table prefixes : NEW · / MOD · / DEL ·
+  Column suffixes: __ADDED / __REMOVED / __RENAMED / __CHANGED
+  MOD tables show only the primary key + changed columns.
+*/
+
+Note diff_summary {
+  '''
+  ## Schema diff: v1.dbml -> v2.dbml
+  - Tables added: 1
+  - Tables removed: 1
+  - Tables modified: 4
+
+  **Added**: dbo.PlanKind
+
+  **Removed**: dbo.LegacyLog
+
+  **Modified**: dbo.Shipments, dbo.Subscriptions, dbo.SubscriptionLines, dbo.Refunds
+  '''
+}
+
+////////// MODIFIED TABLES //////////
+
+Table "MOD · dbo.Shipments" {
+  Id UNIQUEIDENTIFIER [pk, note: 'unchanged columns omitted']
+  "CarrierLabel__REMOVED" NVARCHAR(200) [note: 'REMOVED']
+  "CarrierTag__REMOVED" NVARCHAR(50) [note: 'REMOVED']
+}
+
+Table "MOD · dbo.Subscriptions" {
+  Id UNIQUEIDENTIFIER [pk, note: 'unchanged columns omitted']
+  "PlanKindId__ADDED" INT [not null, note: 'ADDED']
+  "EnrolledOn__CHANGED" DATETIME [note: 'CHANGED: was NOT NULL, now nullable']
+}
+
+Table "MOD · dbo.SubscriptionLines" {
+  Id UNIQUEIDENTIFIER [pk, note: 'unchanged columns omitted']
+  "GeoZoneId__RENAMED" INT [note: 'RENAMED from ZoneId (heuristic - verify)']
+  "Surcharge__CHANGED" DECIMAL(11,8) [note: 'CHANGED: was NOT NULL, now nullable']
+}
+
+Table "MOD · dbo.Refunds" {
+  Id UNIQUEIDENTIFIER [pk, note: 'unchanged columns omitted']
+  "ProcessedOn__CHANGED" BIGINT [note: 'CHANGED: type DATETIME -> BIGINT']
+}
+
+////////// ADDED TABLES //////////
+
+Table "NEW · dbo.PlanKind" {
+  Id INT [pk, note: 'NEW TABLE - 3 columns']
+}
+
+////////// REMOVED TABLES //////////
+
+Table "DEL · dbo.LegacyLog" {
+  Id INT [pk, note: 'TABLE REMOVED']
+  Payload NVARCHAR(MAX)
+}
+"
+`;
+
+exports[`emit (v1 -> v2 fixtures) emitDbml with colors matches snapshot 1`] = `
+"/*
+  SCHEMA DIFF (generated 2026-01-01)
+  v1.dbml  ->  v2.dbml
+
+  Table prefixes : NEW · / MOD · / DEL ·
+  Column suffixes: __ADDED / __REMOVED / __RENAMED / __CHANGED
+  MOD tables show only the primary key + changed columns.
+*/
+
+Note diff_summary {
+  '''
+  ## Schema diff: v1.dbml -> v2.dbml
+  - Tables added: 1
+  - Tables removed: 1
+  - Tables modified: 4
+
+  **Added**: dbo.PlanKind
+
+  **Removed**: dbo.LegacyLog
+
+  **Modified**: dbo.Shipments, dbo.Subscriptions, dbo.SubscriptionLines, dbo.Refunds
+  '''
+}
+
+////////// MODIFIED TABLES //////////
+
+Table "MOD · dbo.Shipments" [headercolor: #f39c12] {
+  Id UNIQUEIDENTIFIER [pk, note: 'unchanged columns omitted']
+  "CarrierLabel__REMOVED" NVARCHAR(200) [note: 'REMOVED']
+  "CarrierTag__REMOVED" NVARCHAR(50) [note: 'REMOVED']
+}
+
+Table "MOD · dbo.Subscriptions" [headercolor: #f39c12] {
+  Id UNIQUEIDENTIFIER [pk, note: 'unchanged columns omitted']
+  "PlanKindId__ADDED" INT [not null, note: 'ADDED']
+  "EnrolledOn__CHANGED" DATETIME [note: 'CHANGED: was NOT NULL, now nullable']
+}
+
+Table "MOD · dbo.SubscriptionLines" [headercolor: #f39c12] {
+  Id UNIQUEIDENTIFIER [pk, note: 'unchanged columns omitted']
+  "GeoZoneId__RENAMED" INT [note: 'RENAMED from ZoneId (heuristic - verify)']
+  "Surcharge__CHANGED" DECIMAL(11,8) [note: 'CHANGED: was NOT NULL, now nullable']
+}
+
+Table "MOD · dbo.Refunds" [headercolor: #f39c12] {
+  Id UNIQUEIDENTIFIER [pk, note: 'unchanged columns omitted']
+  "ProcessedOn__CHANGED" BIGINT [note: 'CHANGED: type DATETIME -> BIGINT']
+}
+
+////////// ADDED TABLES //////////
+
+Table "NEW · dbo.PlanKind" [headercolor: #2ecc71] {
+  Id INT [pk, note: 'NEW TABLE - 3 columns']
+}
+
+////////// REMOVED TABLES //////////
+
+Table "DEL · dbo.LegacyLog" [headercolor: #e74c3c] {
+  Id INT [pk, note: 'TABLE REMOVED']
+  Payload NVARCHAR(MAX)
+}
+"
+`;
+
+exports[`emit (v1 -> v2 fixtures) emitDbml with fullNewTables matches snapshot 1`] = `
+"/*
+  SCHEMA DIFF (generated 2026-01-01)
+  v1.dbml  ->  v2.dbml
+
+  Table prefixes : NEW · / MOD · / DEL ·
+  Column suffixes: __ADDED / __REMOVED / __RENAMED / __CHANGED
+  MOD tables show only the primary key + changed columns.
+*/
+
+Note diff_summary {
+  '''
+  ## Schema diff: v1.dbml -> v2.dbml
+  - Tables added: 1
+  - Tables removed: 1
+  - Tables modified: 4
+
+  **Added**: dbo.PlanKind
+
+  **Removed**: dbo.LegacyLog
+
+  **Modified**: dbo.Shipments, dbo.Subscriptions, dbo.SubscriptionLines, dbo.Refunds
+  '''
+}
+
+////////// MODIFIED TABLES //////////
+
+Table "MOD · dbo.Shipments" {
+  Id UNIQUEIDENTIFIER [pk, note: 'unchanged columns omitted']
+  "CarrierLabel__REMOVED" NVARCHAR(200) [note: 'REMOVED']
+  "CarrierTag__REMOVED" NVARCHAR(50) [note: 'REMOVED']
+}
+
+Table "MOD · dbo.Subscriptions" {
+  Id UNIQUEIDENTIFIER [pk, note: 'unchanged columns omitted']
+  "PlanKindId__ADDED" INT [not null, note: 'ADDED']
+  "EnrolledOn__CHANGED" DATETIME [note: 'CHANGED: was NOT NULL, now nullable']
+}
+
+Table "MOD · dbo.SubscriptionLines" {
+  Id UNIQUEIDENTIFIER [pk, note: 'unchanged columns omitted']
+  "GeoZoneId__RENAMED" INT [note: 'RENAMED from ZoneId (heuristic - verify)']
+  "Surcharge__CHANGED" DECIMAL(11,8) [note: 'CHANGED: was NOT NULL, now nullable']
+}
+
+Table "MOD · dbo.Refunds" {
+  Id UNIQUEIDENTIFIER [pk, note: 'unchanged columns omitted']
+  "ProcessedOn__CHANGED" BIGINT [note: 'CHANGED: type DATETIME -> BIGINT']
+}
+
+////////// ADDED TABLES //////////
+
+Table "NEW · dbo.PlanKind" {
+  Id INT [pk, note: 'NEW TABLE']
+  Title NVARCHAR(100) [not null]
+  Sku NVARCHAR(50) [not null]
+}
+
+////////// REMOVED TABLES //////////
+
+Table "DEL · dbo.LegacyLog" {
+  Id INT [pk, note: 'TABLE REMOVED']
+  Payload NVARCHAR(MAX)
+}
+"
+`;
+
+exports[`emit (v1 -> v2 fixtures) emitJson matches snapshot 1`] = `
+"{
+  "tables": {
+    "added": [
+      {
+        "name": "dbo.PlanKind",
+        "columns": [
+          {
+            "name": "Id",
+            "type": "INT",
+            "notNull": true,
+            "pk": true,
+            "note": null
+          },
+          {
+            "name": "Title",
+            "type": "NVARCHAR(100)",
+            "notNull": true,
+            "pk": false,
+            "note": null
+          },
+          {
+            "name": "Sku",
+            "type": "NVARCHAR(50)",
+            "notNull": true,
+            "pk": false,
+            "note": null
+          }
+        ]
+      }
+    ],
+    "removed": [
+      {
+        "name": "dbo.LegacyLog",
+        "columns": [
+          {
+            "name": "Id",
+            "type": "INT",
+            "notNull": true,
+            "pk": true,
+            "note": null
+          },
+          {
+            "name": "Payload",
+            "type": "NVARCHAR(MAX)",
+            "notNull": false,
+            "pk": false,
+            "note": null
+          }
+        ]
+      }
+    ],
+    "modified": [
+      {
+        "name": "dbo.Shipments",
+        "columns": [
+          {
+            "name": "Id",
+            "type": "UNIQUEIDENTIFIER",
+            "notNull": true,
+            "pk": true,
+            "note": null
+          },
+          {
+            "name": "CarrierId",
+            "type": "UNIQUEIDENTIFIER",
+            "notNull": false,
+            "pk": false,
+            "note": null
+          },
+          {
+            "name": "Freight",
+            "type": "DECIMAL(24,8)",
+            "notNull": false,
+            "pk": false,
+            "note": null
+          }
+        ],
+        "columnsAdded": [],
+        "columnsRemoved": [
+          {
+            "name": "CarrierLabel",
+            "type": "NVARCHAR(200)",
+            "notNull": false,
+            "pk": false,
+            "note": null
+          },
+          {
+            "name": "CarrierTag",
+            "type": "NVARCHAR(50)",
+            "notNull": false,
+            "pk": false,
+            "note": null
+          }
+        ],
+        "columnsChanged": [],
+        "renames": []
+      },
+      {
+        "name": "dbo.Subscriptions",
+        "columns": [
+          {
+            "name": "Id",
+            "type": "UNIQUEIDENTIFIER",
+            "notNull": true,
+            "pk": true,
+            "note": null
+          },
+          {
+            "name": "CustomerId",
+            "type": "UNIQUEIDENTIFIER",
+            "notNull": true,
+            "pk": false,
+            "note": null
+          },
+          {
+            "name": "EnrolledOn",
+            "type": "DATETIME",
+            "notNull": false,
+            "pk": false,
+            "note": null
+          },
+          {
+            "name": "BillingCycleId",
+            "type": "INT",
+            "notNull": true,
+            "pk": false,
+            "note": null
+          },
+          {
+            "name": "PlanKindId",
+            "type": "INT",
+            "notNull": true,
+            "pk": false,
+            "note": null
+          }
+        ],
+        "columnsAdded": [
+          {
+            "name": "PlanKindId",
+            "type": "INT",
+            "notNull": true,
+            "pk": false,
+            "note": null
+          }
+        ],
+        "columnsRemoved": [],
+        "columnsChanged": [
+          {
+            "column": {
+              "name": "EnrolledOn",
+              "type": "DATETIME",
+              "notNull": false,
+              "pk": false,
+              "note": null
+            },
+            "changes": [
+              "was NOT NULL, now nullable"
+            ]
+          }
+        ],
+        "renames": []
+      },
+      {
+        "name": "dbo.SubscriptionLines",
+        "columns": [
+          {
+            "name": "Id",
+            "type": "UNIQUEIDENTIFIER",
+            "notNull": true,
+            "pk": true,
+            "note": null
+          },
+          {
+            "name": "GeoZoneId",
+            "type": "INT",
+            "notNull": false,
+            "pk": false,
+            "note": null
+          },
+          {
+            "name": "Surcharge",
+            "type": "DECIMAL(11,8)",
+            "notNull": false,
+            "pk": false,
+            "note": null
+          }
+        ],
+        "columnsAdded": [],
+        "columnsRemoved": [],
+        "columnsChanged": [
+          {
+            "column": {
+              "name": "Surcharge",
+              "type": "DECIMAL(11,8)",
+              "notNull": false,
+              "pk": false,
+              "note": null
+            },
+            "changes": [
+              "was NOT NULL, now nullable"
+            ]
+          }
+        ],
+        "renames": [
+          {
+            "from": {
+              "name": "ZoneId",
+              "type": "INT",
+              "notNull": false,
+              "pk": false,
+              "note": null
+            },
+            "to": {
+              "name": "GeoZoneId",
+              "type": "INT",
+              "notNull": false,
+              "pk": false,
+              "note": null
+            }
+          }
+        ]
+      },
+      {
+        "name": "dbo.Refunds",
+        "columns": [
+          {
+            "name": "Id",
+            "type": "UNIQUEIDENTIFIER",
+            "notNull": true,
+            "pk": true,
+            "note": null
+          },
+          {
+            "name": "TicketRef",
+            "type": "NVARCHAR(50)",
+            "notNull": true,
+            "pk": false,
+            "note": null
+          },
+          {
+            "name": "ProcessedOn",
+            "type": "BIGINT",
+            "notNull": false,
+            "pk": false,
+            "note": null
+          }
+        ],
+        "columnsAdded": [],
+        "columnsRemoved": [],
+        "columnsChanged": [
+          {
+            "column": {
+              "name": "ProcessedOn",
+              "type": "BIGINT",
+              "notNull": false,
+              "pk": false,
+              "note": null
+            },
+            "changes": [
+              "type DATETIME -> BIGINT"
+            ]
+          }
+        ],
+        "renames": []
+      }
+    ]
+  },
+  "counts": {
+    "added": 1,
+    "removed": 1,
+    "modified": 4
+  }
+}"
+`;
+
+exports[`emit (v1 -> v2 fixtures) emitText matches snapshot 1`] = `
+"Added tables (1):
+  + dbo.PlanKind (3 columns)
+
+Removed tables (1):
+  - dbo.LegacyLog (2 columns)
+
+Modified tables (4):
+  ~ dbo.Shipments
+      - column CarrierLabel NVARCHAR(200)
+      - column CarrierTag NVARCHAR(50)
+  ~ dbo.Subscriptions
+      + column PlanKindId INT NOT NULL
+      ~ column EnrolledOn: was NOT NULL, now nullable
+  ~ dbo.SubscriptionLines
+      ~ rename? ZoneId -> GeoZoneId (heuristic - verify)
+      ~ column Surcharge: was NOT NULL, now nullable
+  ~ dbo.Refunds
+      ~ column ProcessedOn: type DATETIME -> BIGINT"
+`;
