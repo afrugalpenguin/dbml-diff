@@ -92,6 +92,22 @@ describe('CLI', () => {
     expect(res.stdout).toBe('');
   });
 
+  test('enum-only change: exit code 1 and enum counts on stderr', () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'dbml-diff-test-'));
+    const a = path.join(dir, 'a.dbml');
+    const b = path.join(dir, 'b.dbml');
+    fs.writeFileSync(a, 'Enum status {\n  pending\n}\n');
+    fs.writeFileSync(b, 'Enum status {\n  pending\n  paid\n}\n');
+    try {
+      const res = run(a, b);
+      expect(res.status).toBe(1);
+      expect(res.stderr).toContain('enums added: 0, removed: 0, modified: 1');
+      expect(res.stdout).toContain('Modified enums (1):');
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
   test('--version exits 0 and prints the package version', () => {
     const res = run('--version');
     expect(res.status).toBe(0);

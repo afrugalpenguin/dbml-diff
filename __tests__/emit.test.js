@@ -62,3 +62,67 @@ describe('emit (v1 -> v2 fixtures)', () => {
     expect(() => new Parser().parse(out, 'dbmlv2')).not.toThrow();
   });
 });
+
+describe('emit (enums)', () => {
+  const added = () => diff(
+    `Table t { id int [pk] }`,
+    `Table t { id int [pk] }
+Enum status {
+  a
+  b
+}`,
+  );
+  const modified = () => diff(
+    `Enum status {
+  pending
+  cancelled
+}`,
+    `Enum status {
+  pending
+  shipped
+}`,
+  );
+
+  test('emitText reports an enum-only change instead of "no differences"', () => {
+    const out = emitText(added());
+    expect(out).not.toBe('No differences found.');
+    expect(out).toContain('Added enums (1):');
+    expect(out).toContain('+ status (a, b)');
+  });
+
+  test('emitText lists added and removed enum values for a modified enum', () => {
+    const out = emitText(modified());
+    expect(out).toContain('Modified enums (1):');
+    expect(out).toContain('~ status');
+    expect(out).toContain('+ value shipped');
+    expect(out).toContain('- value cancelled');
+  });
+
+  test('emitDbml renders an added enum with the NEW prefix', () => {
+    const out = emitDbml(added(), { date: DATE });
+    expect(out).toContain('Enum "NEW · status"');
+    expect(out).toContain('Enums added: 1');
+  });
+
+  test('emitDbml renders a modified enum with ADDED/REMOVED value notes', () => {
+    const out = emitDbml(modified(), { date: DATE });
+    expect(out).toContain('Enum "MOD · status"');
+    expect(out).toContain("shipped [note: 'ADDED']");
+    expect(out).toContain("cancelled [note: 'REMOVED']");
+  });
+
+  test('emitDbml enum output parses cleanly back through @dbml/core', () => {
+    for (const r of [added(), modified()]) {
+      const out = emitDbml(r, { date: DATE });
+      expect(() => new Parser().parse(out, 'dbmlv2')).not.toThrow();
+    }
+  });
+
+  test('emitDbml is unchanged for a table-only diff (no enum section)', () => {
+    const tableOnly = diff(`Table t { id int [pk] }`, `Table t { id int [pk]
+  name varchar(50) }`);
+    const out = emitDbml(tableOnly, { date: DATE });
+    expect(out).not.toContain('ENUMS');
+    expect(out).not.toContain('Enums added');
+  });
+});

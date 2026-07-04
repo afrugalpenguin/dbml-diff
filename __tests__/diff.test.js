@@ -153,6 +153,94 @@ TABLE dbo.Refunds {
     expect(result.tables.modified[0].name).toBe('dbo.Shipments');
   });
 
+  test('detects an added enum', () => {
+    const a = `Table users { id int [pk] }`;
+    const b = `Table users { id int [pk] }
+Enum order_status {
+  pending
+  paid
+  shipped
+}`;
+    const result = diff(a, b);
+    expect(result.enums.added).toHaveLength(1);
+    expect(result.enums.added[0].name).toBe('order_status');
+    expect(result.enums.added[0].values).toEqual(['pending', 'paid', 'shipped']);
+    expect(result.enums.removed).toHaveLength(0);
+    expect(result.enums.modified).toHaveLength(0);
+  });
+
+  test('detects a removed enum', () => {
+    const a = `Table users { id int [pk] }
+Enum order_status {
+  pending
+  paid
+}`;
+    const b = `Table users { id int [pk] }`;
+    const result = diff(a, b);
+    expect(result.enums.removed).toHaveLength(1);
+    expect(result.enums.removed[0].name).toBe('order_status');
+    expect(result.enums.removed[0].values).toEqual(['pending', 'paid']);
+    expect(result.enums.added).toHaveLength(0);
+  });
+
+  test('detects enum values added and removed', () => {
+    const a = `Enum order_status {
+  pending
+  paid
+  cancelled
+}`;
+    const b = `Enum order_status {
+  pending
+  paid
+  shipped
+}`;
+    const result = diff(a, b);
+    expect(result.enums.modified).toHaveLength(1);
+    const m = result.enums.modified[0];
+    expect(m.name).toBe('order_status');
+    expect(m.valuesAdded).toEqual(['shipped']);
+    expect(m.valuesRemoved).toEqual(['cancelled']);
+    expect(m.values).toEqual(['pending', 'paid', 'shipped']);
+  });
+
+  test('reordering enum values is not a change', () => {
+    const a = `Enum order_status {
+  pending
+  paid
+  shipped
+}`;
+    const b = `Enum order_status {
+  shipped
+  pending
+  paid
+}`;
+    const result = diff(a, b);
+    expect(result.enums.modified).toHaveLength(0);
+  });
+
+  test('preserves schema-qualified enum names', () => {
+    const a = `Enum dbo.order_status {
+  pending
+}`;
+    const b = `Enum dbo.order_status {
+  pending
+  paid
+}`;
+    const result = diff(a, b);
+    expect(result.enums.modified[0].name).toBe('dbo.order_status');
+    expect(result.enums.modified[0].valuesAdded).toEqual(['paid']);
+  });
+
+  test('identical schemas produce empty enum diffs', () => {
+    const s = `Table users { id int [pk] }
+Enum order_status {
+  pending
+  paid
+}`;
+    const result = diff(s, s);
+    expect(result.enums).toEqual({ added: [], removed: [], modified: [] });
+  });
+
   test('strips DiagramView and TableGroup blocks before parsing', () => {
     const a = `Table users { id int [pk] }`;
     const b = `Table users { id int [pk] }
