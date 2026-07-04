@@ -7,5 +7,4 @@ _site/
 testdata/
 Screenshot*.png
 
-# Release skill is local-only - never commit
 .claude/skills/release/
