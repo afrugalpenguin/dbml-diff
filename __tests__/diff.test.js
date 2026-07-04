@@ -241,19 +241,102 @@ Enum order_status {
     expect(result.enums).toEqual({ added: [], removed: [], modified: [] });
   });
 
-  test('strips DiagramView and TableGroup blocks before parsing', () => {
+  test('strips DiagramView blocks before parsing', () => {
     const a = `Table users { id int [pk] }`;
     const b = `Table users { id int [pk] }
-
-TableGroup "Dictionaries" [color: #000000] {
-  users
-}
 
 DiagramView Default {
   *
 }`;
     const result = diff(a, b);
     expect(result.counts).toEqual({ added: 0, removed: 0, modified: 0 });
+  });
+});
+
+describe('group diff', () => {
+  const tables = `Table users { id int [pk] }
+Table posts { id int [pk] }
+Table comments { id int [pk] }
+`;
+
+  test('detects an added group', () => {
+    const a = tables;
+    const b = `${tables}TableGroup social {
+  users
+  posts
+}`;
+    const result = diff(a, b);
+    expect(result.groups.added).toHaveLength(1);
+    expect(result.groups.added[0].name).toBe('social');
+    expect(result.groups.added[0].tables).toEqual(['posts', 'users']);
+    expect(result.groups.removed).toHaveLength(0);
+    expect(result.groups.modified).toHaveLength(0);
+  });
+
+  test('detects a removed group', () => {
+    const a = `${tables}TableGroup social {
+  users
+  posts
+}`;
+    const b = tables;
+    const result = diff(a, b);
+    expect(result.groups.removed).toHaveLength(1);
+    expect(result.groups.removed[0].name).toBe('social');
+    expect(result.groups.added).toHaveLength(0);
+  });
+
+  test('detects membership added and removed in a modified group', () => {
+    const a = `${tables}TableGroup social {
+  users
+  posts
+}`;
+    const b = `${tables}TableGroup social {
+  users
+  comments
+}`;
+    const result = diff(a, b);
+    expect(result.groups.modified).toHaveLength(1);
+    const m = result.groups.modified[0];
+    expect(m.name).toBe('social');
+    expect(m.tablesAdded).toEqual(['comments']);
+    expect(m.tablesRemoved).toEqual(['posts']);
+    expect(result.groups.added).toHaveLength(0);
+    expect(result.groups.removed).toHaveLength(0);
+  });
+
+  test('reordering group members is not a change', () => {
+    const a = `${tables}TableGroup social {
+  users
+  posts
+}`;
+    const b = `${tables}TableGroup social {
+  posts
+  users
+}`;
+    const result = diff(a, b);
+    expect(result.groups.modified).toHaveLength(0);
+  });
+
+  test('resolves schema-qualified members to fully-qualified names', () => {
+    const a = `Table dbo.orders { id int [pk] }
+Table sales.shipments { id int [pk] }`;
+    const b = `Table dbo.orders { id int [pk] }
+Table sales.shipments { id int [pk] }
+TableGroup fulfilment {
+  dbo.orders
+  sales.shipments
+}`;
+    const result = diff(a, b);
+    expect(result.groups.added[0].tables).toEqual(['dbo.orders', 'sales.shipments']);
+  });
+
+  test('identical schemas produce empty group diffs', () => {
+    const s = `${tables}TableGroup social {
+  users
+  posts
+}`;
+    const result = diff(s, s);
+    expect(result.groups).toEqual({ added: [], removed: [], modified: [] });
   });
 });
 

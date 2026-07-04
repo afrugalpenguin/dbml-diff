@@ -64,7 +64,7 @@ The counts summary (`added: N, removed: N, modified: N`) always goes to **stderr
 | `NEW · ` / `MOD · ` / `DEL · ` enum name prefix | Enum added / modified / removed |
 | `[note: 'ADDED']` / `[note: 'REMOVED']` on an enum value | Value added / removed in a modified enum |
 
-Modified tables show only their primary key (annotated `unchanged columns omitted`) plus the changed columns. Added tables are stubbed to the PK with a `NEW TABLE - N columns` note by default (`--full-new-tables` emits everything); removed tables are emitted in full. Enum changes are emitted as `Enum` blocks under the same `NEW · / MOD · / DEL ·` prefixes; in a modified enum the full new value list is shown with `ADDED` notes on new values and the dropped values re-listed with `REMOVED` notes. A `Note diff_summary { ... }` block at the top lists the counts and the affected table names.
+Modified tables show only their primary key (annotated `unchanged columns omitted`) plus the changed columns. Added tables are stubbed to the PK with a `NEW TABLE - N columns` note by default (`--full-new-tables` emits everything); removed tables are emitted in full. Enum changes are emitted as `Enum` blocks under the same `NEW · / MOD · / DEL ·` prefixes; in a modified enum the full new value list is shown with `ADDED` notes on new values and the dropped values re-listed with `REMOVED` notes. A `Note diff_summary { ... }` block at the top lists the counts and the affected table names. TableGroup membership changes (groups added or removed, and tables moving in or out of a group) are reported in that same summary note.
 
 Relationship (`Ref:`) changes are reported in the `diff_summary` note (and in `--format text` / `--format json`): added and removed refs, plus `retargeted` when an FK side keeps its columns but points at a new parent. A change that cannot be mapped to a single retarget (an FK side gaining or losing several parents at once) is listed as `unresolved` rather than force-classified.
 
@@ -103,6 +103,11 @@ const result = diff(oldDbmlString, newDbmlString);
 //     retargeted: [ { from, oldTo, newTo } ],   // same FK side, new parent
 //     unresolved: [ { from, oldTargets: [...], newTargets: [...] } ]  // ambiguous
 //   },
+//   groups: {   // TableGroups (membership diffed as a set)
+//     added:    [ { name, tables: [...] } ],
+//     removed:  [ { name, tables: [...] } ],
+//     modified: [ { name, tablesAdded: [...], tablesRemoved: [...] } ]
+//   },
 //   counts: { added, removed, modified }   // tables only
 // }
 
@@ -123,7 +128,7 @@ Useful for CI gates ("fail the build if the schema changed"):
 
 ## Parsing behaviour
 
-- dbdiagram-specific `DiagramView` and `TableGroup` top-level blocks are stripped before parsing (`@dbml/core` rejects `DiagramView`).
+- dbdiagram-specific `DiagramView` top-level blocks are stripped before parsing (`@dbml/core` rejects them). `TableGroup` blocks are kept and diffed for group-membership changes.
 - Primary keys are detected from inline `[pk]` attributes **and** from `Indexes { Col [pk] }` blocks.
 - Schema-qualified table names (e.g. `dbo.Shipments`) are preserved as-is.
 
@@ -131,7 +136,6 @@ Useful for CI gates ("fail the build if the schema changed"):
 
 **[Visual public roadmap](https://afrugalpenguin.github.io/dbml-diff/roadmap.html)** - what shipped, what's in progress, what's next. Generated from the issue tracker: issues labelled `roadmap` become cards, `status:` labels set the column, closed issues land in Launched.
 
-- Table group diffing
 - `--format sql` - ALTER statement generation (see upstream [holistics/dbml#175](https://github.com/holistics/dbml/issues/175))
 
 ## License
