@@ -52,6 +52,18 @@ describe('emit (v1 -> v2 fixtures)', () => {
     expect(emitText(diff(v1, v1))).toBe('No differences found.');
   });
 
+  test('emitText opens with a legend explaining the markers', () => {
+    const out = emitText(result);
+    const firstLine = out.split('\n')[0];
+    expect(firstLine).toBe('Legend: + added   - removed   ~ modified');
+    // Legend precedes the first change section.
+    expect(out.indexOf('Legend:')).toBeLessThan(out.indexOf('tables'));
+  });
+
+  test('emitText omits the legend when there are no differences', () => {
+    expect(emitText(diff(v1, v1))).not.toContain('Legend:');
+  });
+
   // Acceptance check: guarantees dbdiagram.io will accept the output.
   test.each([
     ['default', {}],

@@ -479,7 +479,9 @@ exports[`emit (v1 -> v2 fixtures) emitJson matches snapshot 1`] = `
 `;
 
 exports[`emit (v1 -> v2 fixtures) emitText matches snapshot 1`] = `
-"Added tables (1):
+"Legend: + added   - removed   ~ modified
+
+Added tables (1):
   + dbo.PlanKind (3 columns)
 
 Removed tables (1):
