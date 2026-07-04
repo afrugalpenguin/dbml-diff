@@ -6,3 +6,6 @@ _site/
 # Local-only schema files - never commit (contains private schema data)
 testdata/
 Screenshot*.png
+
+# Release skill is local-only - never commit
+.claude/skills/release/
