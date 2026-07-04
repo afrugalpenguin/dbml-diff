@@ -123,4 +123,4 @@ Useful for CI gates ("fail the build if the schema changed"):
 
 ## License
 
-Apache-2.0 (matches upstream [holistics/dbml](https://github.com/holistics/dbml)).
+Apache-2.0.
