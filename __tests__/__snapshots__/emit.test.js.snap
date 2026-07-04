@@ -465,6 +465,11 @@ exports[`emit (v1 -> v2 fixtures) emitJson matches snapshot 1`] = `
       }
     ]
   },
+  "enums": {
+    "added": [],
+    "removed": [],
+    "modified": []
+  },
   "counts": {
     "added": 1,
     "removed": 1,

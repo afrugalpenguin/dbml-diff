@@ -3,7 +3,7 @@
 
 const fs = require('fs');
 const { parseSchema } = require('../lib/parse');
-const { diffTables } = require('../lib/diff');
+const { diffSchemas } = require('../lib/diff');
 const { emitText, emitJson, emitDbml } = require('../lib/emit');
 const pkg = require('../package.json');
 
@@ -110,9 +110,9 @@ function main() {
   }
 
   const [oldFile, newFile] = opts.files;
-  const oldTables = parseOrFail(oldFile, readFileOrFail(oldFile));
-  const newTables = parseOrFail(newFile, readFileOrFail(newFile));
-  const result = diffTables(oldTables, newTables);
+  const oldSchema = parseOrFail(oldFile, readFileOrFail(oldFile));
+  const newSchema = parseOrFail(newFile, readFileOrFail(newFile));
+  const result = diffSchemas(oldSchema, newSchema);
 
   let out;
   if (opts.format === 'json') out = emitJson(result);
@@ -136,9 +136,14 @@ function main() {
     process.stdout.write(out);
   }
 
-  const { counts } = result;
-  process.stderr.write(`added: ${counts.added}, removed: ${counts.removed}, modified: ${counts.modified}\n`);
-  process.exit(counts.added + counts.removed + counts.modified ? 1 : 0);
+  const { counts, enums } = result;
+  const enumChanges = enums.added.length + enums.removed.length + enums.modified.length;
+  let summary = `added: ${counts.added}, removed: ${counts.removed}, modified: ${counts.modified}`;
+  if (enumChanges) {
+    summary += ` | enums added: ${enums.added.length}, removed: ${enums.removed.length}, modified: ${enums.modified.length}`;
+  }
+  process.stderr.write(`${summary}\n`);
+  process.exit(counts.added + counts.removed + counts.modified + enumChanges ? 1 : 0);
 }
 
 main();
