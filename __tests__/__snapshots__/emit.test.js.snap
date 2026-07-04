@@ -470,6 +470,12 @@ exports[`emit (v1 -> v2 fixtures) emitJson matches snapshot 1`] = `
     "removed": [],
     "modified": []
   },
+  "refs": {
+    "added": [],
+    "removed": [],
+    "retargeted": [],
+    "unresolved": []
+  },
   "counts": {
     "added": 1,
     "removed": 1,
