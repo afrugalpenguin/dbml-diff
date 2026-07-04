@@ -13,15 +13,15 @@ npm ci && npm test
 ```
 
 If the tests pass, you're good. The code is tiny and reads in one sitting:
-`parse.js` (DBML → model) → `diff.js` (compare) → `emit.js` (render). Most
-features follow that grain — extend the model, teach the diff, render it.
+`parse.js` (DBML > model) > `diff.js` (compare) > `emit.js` (render). Most
+features follow that grain - extend the model, teach the diff, render it.
 
 ## The workflow
 
 1. **Start from an issue** (create one if needed; label it `bug`,
    `enhancement`, `documentation`, or `question`).
 2. **Branch off `main`** with a `feature/`, `fix/`, or `chore/` prefix.
-3. **Add a test** where it makes sense — snapshots included.
+3. **Add a test** where it makes sense.
 4. **Open a PR** with `Closes #N` so the issue auto-closes on merge.
 
 `main` is protected: the test suite must pass on Node 18 and 20. Thats it - for now.
@@ -33,13 +33,13 @@ a git hook: `type(scope): description`.
 
 - **Type**: `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `build`, `ci`,
   `perf`, `style`.
-- **Scope required** — no empty parens. First line **≤ 72 chars**.
+- **Scope required**: no empty parens. First line **≤ 72 chars**.
 
 ```
 feat(emit): add mermaid erDiagram output format
 ```
 
 Changing emitter output on purpose? Run `npx jest -u` and eyeball the snapshot
-diff before committing — that diff *is* the review.
+diff before committing. Make sure it makes sense!
 
 Thanks for looking.
