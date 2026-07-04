@@ -8,8 +8,8 @@
 //   label "status: working-on"   -> Working on
 //   label "status: upcoming"     -> Upcoming
 //   otherwise                    -> Backlog
-// Milestone title renders as the card's flag; remaining labels render as
-// tag pills; the first line of the issue body is the card description.
+// Labels (other than `roadmap` and `status:`) render as tag pills; the first
+// line of the issue body is the card description.
 
 const fs = require('fs');
 const path = require('path');
@@ -52,11 +52,10 @@ function card(issue) {
     .filter((n) => n !== 'roadmap' && !n.startsWith('status:'))
     .map((n) => `<span class="tag ${hueClass(n)}">${esc(n)}</span>`)
     .join('');
-  const flag = issue.milestone ? `<span class="flag">${esc(issue.milestone.title)}</span>` : '';
   const desc = firstLine(issue.body);
   return `      <article class="card">
         <h3><a href="${esc(issue.html_url)}">${esc(issue.title)}</a></h3>
-        ${flag}${desc ? `<p>${esc(desc)}</p>` : ''}
+        ${desc ? `<p>${esc(desc)}</p>` : ''}
         <div class="src"><a href="${esc(issue.html_url)}">#${issue.number}</a></div>
         ${tags ? `<div class="tags">${tags}</div>` : ''}
       </article>`;
@@ -105,7 +104,6 @@ ${cols[key].map(card).join('\n')}
     --bg: #f5f6f8; --col-bg: #eceef2; --card-bg: #ffffff; --card-border: #dfe3ea;
     --text: #1b222c; --text-soft: #4c5665; --text-faint: #7b8595; --link: #2563b0;
     --backlog: #64748b; --upcoming: #3b82c4; --working: #d99118; --launched: #2f9e5f;
-    --flag-bg: rgba(217, 145, 24, 0.14); --flag-fg: #8a5c0a;
     --shadow: 0 1px 2px rgba(15, 19, 25, 0.06);
     --mono: ui-monospace, "Cascadia Code", Consolas, "SF Mono", Menlo, monospace;
     --sans: system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -116,7 +114,6 @@ ${cols[key].map(card).join('\n')}
       --bg: #0f1319; --col-bg: #141922; --card-bg: #1a212c; --card-border: #232c39;
       --text: #e6eaf0; --text-soft: #a8b2c0; --text-faint: #6c7787; --link: #6aa5dd;
       --backlog: #8a97a8; --upcoming: #5b9bd4; --working: #e0a42e; --launched: #46b878;
-      --flag-bg: rgba(224, 164, 46, 0.16); --flag-fg: #e3b558;
       --shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
       --p0: #6fa8d6; --p1: #56b57f; --p2: #d3a13e; --p3: #a48fd6; --p4: #cf8490; --p5: #7fabab;
     }
@@ -148,7 +145,6 @@ ${cols[key].map(card).join('\n')}
   .card h3 { font-size: 0.9rem; font-weight: 600; margin: 0; line-height: 1.35; }
   .card h3 a { color: var(--text); text-decoration: none; }
   .card h3 a:hover, .card h3 a:focus-visible { color: var(--link); }
-  .flag { align-self: flex-start; font-family: var(--mono); font-size: 0.68rem; font-weight: 600; background: var(--flag-bg); color: var(--flag-fg); border-radius: 4px; padding: 0.15rem 0.45rem; }
   .card p { margin: 0; font-size: 0.8rem; line-height: 1.5; color: var(--text-soft); }
   .src { font-family: var(--mono); font-size: 0.72rem; }
   .src a { color: var(--text-faint); text-decoration: none; }

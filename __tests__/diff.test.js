@@ -339,3 +339,68 @@ TableGroup fulfilment {
     expect(result.groups).toEqual({ added: [], removed: [], modified: [] });
   });
 });
+
+describe('ref diff', () => {
+  const tables = `Table users { id int [pk] }
+Table members { id int [pk] }
+Table posts { id int [pk]
+  uid int
+  eid int }
+`;
+
+  test('detects an added ref', () => {
+    const a = tables;
+    const b = `${tables}Ref: posts.uid > users.id`;
+    const result = diff(a, b);
+    expect(result.refs.added).toHaveLength(1);
+    expect(result.refs.added[0].from).toEqual({ table: 'posts', columns: ['uid'] });
+    expect(result.refs.added[0].to).toEqual({ table: 'users', columns: ['id'] });
+    expect(result.refs.removed).toHaveLength(0);
+    expect(result.refs.retargeted).toHaveLength(0);
+    expect(result.refs.unresolved).toHaveLength(0);
+  });
+
+  test('detects a removed ref', () => {
+    const a = `${tables}Ref: posts.uid > users.id`;
+    const b = tables;
+    const result = diff(a, b);
+    expect(result.refs.removed).toHaveLength(1);
+    expect(result.refs.removed[0].from).toEqual({ table: 'posts', columns: ['uid'] });
+    expect(result.refs.removed[0].to).toEqual({ table: 'users', columns: ['id'] });
+    expect(result.refs.added).toHaveLength(0);
+    expect(result.refs.retargeted).toHaveLength(0);
+    expect(result.refs.unresolved).toHaveLength(0);
+  });
+
+  test('reports a retargeted ref instead of add + remove', () => {
+    const a = `${tables}Ref: posts.uid > users.id`;
+    const b = `${tables}Ref: posts.uid > members.id`;
+    const result = diff(a, b);
+    expect(result.refs.retargeted).toHaveLength(1);
+    expect(result.refs.retargeted[0].from).toEqual({ table: 'posts', columns: ['uid'] });
+    expect(result.refs.retargeted[0].oldTo).toEqual({ table: 'users', columns: ['id'] });
+    expect(result.refs.retargeted[0].newTo).toEqual({ table: 'members', columns: ['id'] });
+    expect(result.refs.added).toHaveLength(0);
+    expect(result.refs.removed).toHaveLength(0);
+    expect(result.refs.unresolved).toHaveLength(0);
+  });
+
+  test('reports ambiguous many-to-many ref changes as unresolved', () => {
+    const a = `${tables}Ref: posts.uid > users.id`;
+    const b = `${tables}Ref: posts.uid > members.id
+Ref: posts.uid > posts.id`;
+    // posts.uid retargets from {users} to two distinct parents {members, posts}.
+    // There is no single 1-to-1 mapping, so it is surfaced as unresolved
+    // rather than force-classified as one retarget.
+    const result = diff(a, b);
+    expect(result.refs.unresolved).toHaveLength(1);
+    expect(result.refs.unresolved[0].from).toEqual({ table: 'posts', columns: ['uid'] });
+    const oldTargets = result.refs.unresolved[0].oldTargets.map((t) => t.table);
+    const newTargets = result.refs.unresolved[0].newTargets.map((t) => t.table).sort();
+    expect(oldTargets).toEqual(['users']);
+    expect(newTargets).toEqual(['members', 'posts']);
+    expect(result.refs.retargeted).toHaveLength(0);
+    expect(result.refs.added).toHaveLength(0);
+    expect(result.refs.removed).toHaveLength(0);
+  });
+});

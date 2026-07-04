@@ -52,6 +52,18 @@ describe('emit (v1 -> v2 fixtures)', () => {
     expect(emitText(diff(v1, v1))).toBe('No differences found.');
   });
 
+  test('emitText opens with a legend explaining the markers', () => {
+    const out = emitText(result);
+    const firstLine = out.split('\n')[0];
+    expect(firstLine).toBe('Legend: + added   - removed   ~ modified');
+    // Legend precedes the first change section.
+    expect(out.indexOf('Legend:')).toBeLessThan(out.indexOf('tables'));
+  });
+
+  test('emitText omits the legend when there are no differences', () => {
+    expect(emitText(diff(v1, v1))).not.toContain('Legend:');
+  });
+
   // Acceptance check: guarantees dbdiagram.io will accept the output.
   test.each([
     ['default', {}],
@@ -178,5 +190,65 @@ Table comments { id int [pk] }
   name varchar(50) }`);
     const out = emitDbml(tableOnly, { date: DATE });
     expect(out).not.toContain('Groups added');
+  });
+});
+
+describe('emit (refs)', () => {
+  const tables = `Table users { id int [pk] }
+Table members { id int [pk] }
+Table posts { id int [pk]
+  uid int
+  eid int }
+`;
+  const added = () => diff(tables, `${tables}Ref: posts.uid > users.id`);
+  const removed = () => diff(`${tables}Ref: posts.uid > users.id`, tables);
+  const retargeted = () => diff(
+    `${tables}Ref: posts.uid > users.id`,
+    `${tables}Ref: posts.uid > members.id`,
+  );
+  const unresolved = () => diff(
+    `${tables}Ref: posts.uid > users.id`,
+    `${tables}Ref: posts.uid > members.id
+Ref: posts.uid > posts.id`,
+  );
+
+  test('emitText reports an added ref instead of "no differences"', () => {
+    const out = emitText(added());
+    expect(out).not.toBe('No differences found.');
+    expect(out).toContain('Ref changes (1):');
+    expect(out).toContain('+ posts.uid > users.id');
+  });
+
+  test('emitText reports a removed ref', () => {
+    expect(emitText(removed())).toContain('- posts.uid > users.id');
+  });
+
+  test('emitText reports a retargeted ref', () => {
+    const out = emitText(retargeted());
+    expect(out).toContain('~ posts.uid now > members.id (was users.id)');
+  });
+
+  test('emitText flags an unresolved ref change', () => {
+    const out = emitText(unresolved());
+    expect(out).toContain('? posts.uid ambiguous:');
+  });
+
+  test('emitDbml records ref counts in the summary note', () => {
+    const out = emitDbml(retargeted(), { date: DATE });
+    expect(out).toContain('Refs retargeted: 1');
+  });
+
+  test('emitDbml ref output parses cleanly back through @dbml/core', () => {
+    for (const r of [added(), removed(), retargeted(), unresolved()]) {
+      const out = emitDbml(r, { date: DATE });
+      expect(() => new Parser().parse(out, 'dbmlv2')).not.toThrow();
+    }
+  });
+
+  test('emitDbml is unchanged for a table-only diff (no refs section)', () => {
+    const tableOnly = diff(`Table t { id int [pk] }`, `Table t { id int [pk]
+  name varchar(50) }`);
+    const out = emitDbml(tableOnly, { date: DATE });
+    expect(out).not.toContain('Refs added');
   });
 });
