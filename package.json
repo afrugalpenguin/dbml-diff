@@ -1,6 +1,6 @@
 {
   "name": "dbml-diff",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Structural diff for DBML schema files - emits text, JSON, or an annotated DBML document that renders as a visual diff in dbdiagram.io",
   "keywords": [
     "dbml",
@@ -26,7 +26,8 @@
   },
   "files": [
     "lib",
-    "bin"
+    "bin",
+    "CHANGELOG.md"
   ],
   "engines": {
     "node": ">=18"
