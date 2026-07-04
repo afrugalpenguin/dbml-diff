@@ -16,12 +16,18 @@ Note diff_summary {
   - Tables added: 1
   - Tables removed: 1
   - Tables modified: 4
+  - Groups added: 1
+  - Groups removed: 0
+  - Groups modified: 0
 
   **Added**: dbo.PlanKind
 
   **Removed**: dbo.LegacyLog
 
   **Modified**: dbo.Shipments, dbo.Subscriptions, dbo.SubscriptionLines, dbo.Refunds
+
+  **Group changes**:
+  + Lookups (dbo.PlanKind)
   '''
 }
 
@@ -81,12 +87,18 @@ Note diff_summary {
   - Tables added: 1
   - Tables removed: 1
   - Tables modified: 4
+  - Groups added: 1
+  - Groups removed: 0
+  - Groups modified: 0
 
   **Added**: dbo.PlanKind
 
   **Removed**: dbo.LegacyLog
 
   **Modified**: dbo.Shipments, dbo.Subscriptions, dbo.SubscriptionLines, dbo.Refunds
+
+  **Group changes**:
+  + Lookups (dbo.PlanKind)
   '''
 }
 
@@ -146,12 +158,18 @@ Note diff_summary {
   - Tables added: 1
   - Tables removed: 1
   - Tables modified: 4
+  - Groups added: 1
+  - Groups removed: 0
+  - Groups modified: 0
 
   **Added**: dbo.PlanKind
 
   **Removed**: dbo.LegacyLog
 
   **Modified**: dbo.Shipments, dbo.Subscriptions, dbo.SubscriptionLines, dbo.Refunds
+
+  **Group changes**:
+  + Lookups (dbo.PlanKind)
   '''
 }
 
@@ -470,6 +488,18 @@ exports[`emit (v1 -> v2 fixtures) emitJson matches snapshot 1`] = `
     "removed": [],
     "modified": []
   },
+  "groups": {
+    "added": [
+      {
+        "name": "Lookups",
+        "tables": [
+          "dbo.PlanKind"
+        ]
+      }
+    ],
+    "removed": [],
+    "modified": []
+  },
   "counts": {
     "added": 1,
     "removed": 1,
@@ -496,5 +526,8 @@ Modified tables (4):
       ~ rename? ZoneId -> GeoZoneId (heuristic - verify)
       ~ column Surcharge: was NOT NULL, now nullable
   ~ dbo.Refunds
-      ~ column ProcessedOn: type DATETIME -> BIGINT"
+      ~ column ProcessedOn: type DATETIME -> BIGINT
+
+Group changes (1):
+  + Lookups (dbo.PlanKind)"
 `;

@@ -126,3 +126,57 @@ Enum status {
     expect(out).not.toContain('Enums added');
   });
 });
+
+describe('emit (groups)', () => {
+  const tables = `Table users { id int [pk] }
+Table posts { id int [pk] }
+Table comments { id int [pk] }
+`;
+  const added = () => diff(tables, `${tables}TableGroup social {
+  users
+  posts
+}`);
+  const modified = () => diff(
+    `${tables}TableGroup social {
+  users
+  posts
+}`,
+    `${tables}TableGroup social {
+  users
+  comments
+}`,
+  );
+
+  test('emitText reports an added group instead of "no differences"', () => {
+    const out = emitText(added());
+    expect(out).not.toBe('No differences found.');
+    expect(out).toContain('Group changes (1):');
+    expect(out).toContain('+ social (posts, users)');
+  });
+
+  test('emitText lists membership added and removed for a modified group', () => {
+    const out = emitText(modified());
+    expect(out).toContain('~ social');
+    expect(out).toContain('+ table comments');
+    expect(out).toContain('- table posts');
+  });
+
+  test('emitDbml records group counts in the summary note', () => {
+    const out = emitDbml(added(), { date: DATE });
+    expect(out).toContain('Groups added: 1');
+  });
+
+  test('emitDbml group output parses cleanly back through @dbml/core', () => {
+    for (const r of [added(), modified()]) {
+      const out = emitDbml(r, { date: DATE });
+      expect(() => new Parser().parse(out, 'dbmlv2')).not.toThrow();
+    }
+  });
+
+  test('emitDbml is unchanged for a table-only diff (no groups section)', () => {
+    const tableOnly = diff(`Table t { id int [pk] }`, `Table t { id int [pk]
+  name varchar(50) }`);
+    const out = emitDbml(tableOnly, { date: DATE });
+    expect(out).not.toContain('Groups added');
+  });
+});
