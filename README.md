@@ -105,7 +105,8 @@ them deliberately:
 Caveats:
 
 - Adding a `NOT NULL` column to a table that already has rows fails without a
-  default; such statements carry an inline `-- NOTE`.
+  default, and tightening an existing column to `NOT NULL` fails if it holds any
+  NULLs; both carry an inline `-- NOTE`.
 - Enums, TableGroups, and foreign keys are not represented in the SQL output.
   Foreign-key constraint DDL is tracked separately on the roadmap.
 - `--migrate` cannot be combined with `--format`, and T-SQL is currently the

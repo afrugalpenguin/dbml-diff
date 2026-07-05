@@ -116,6 +116,20 @@ describe('emitMigration (v1 -> v2 fixtures)', () => {
     expect(sql).toContain('ALTER TABLE [dbo].[Subscriptions] ALTER COLUMN [EnrolledOn] DATETIME NULL;');
   });
 
+  test('loosening a column to nullable carries no warning', () => {
+    const line = sql.split('\n').find((l) => l.includes('ALTER COLUMN [EnrolledOn]'));
+    expect(line).not.toMatch(/NOTE/);
+  });
+
+  test('tightening a column to NOT NULL carries a NULLs warning', () => {
+    const before = 'Table t {\n  id INT [pk]\n  x INT\n}';
+    const after = 'Table t {\n  id INT [pk]\n  x INT [not null]\n}';
+    const out = emitMigration(diff(before, after));
+    const line = out.split('\n').find((l) => l.includes('ALTER COLUMN [x]'));
+    expect(line).toContain('[x] INT NOT NULL;');
+    expect(line).toMatch(/NOTE: fails if the column contains NULLs/);
+  });
+
   test('heuristic rename is emitted commented as sp_rename', () => {
     const line = sql.split('\n').find((l) => l.includes('sp_rename'));
     expect(line).toBeDefined();
