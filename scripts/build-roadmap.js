@@ -142,11 +142,11 @@ ${cols[key].map(card).join('\n')}
   .col-working .dot { background: var(--working); }
   .col-launched .dot { background: var(--launched); }
   .count { margin-left: auto; font-family: var(--mono); font-size: 0.72rem; font-weight: 400; color: var(--text-faint); font-variant-numeric: tabular-nums; }
-  .card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 8px; padding: 0.85rem 0.9rem; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 0.5rem; }
-  .col-backlog .card { border-color: color-mix(in srgb, var(--backlog) 35%, var(--card-border)); background: color-mix(in srgb, var(--backlog) 7%, var(--card-bg)); }
-  .col-upcoming .card { border-color: color-mix(in srgb, var(--upcoming) 35%, var(--card-border)); background: color-mix(in srgb, var(--upcoming) 7%, var(--card-bg)); }
-  .col-working .card { border-color: color-mix(in srgb, var(--working) 35%, var(--card-border)); background: color-mix(in srgb, var(--working) 7%, var(--card-bg)); }
-  .col-launched .card { border-color: color-mix(in srgb, var(--launched) 35%, var(--card-border)); background: color-mix(in srgb, var(--launched) 7%, var(--card-bg)); }
+  .card { background: var(--card-bg); border: none; border-radius: 8px; padding: 0.85rem 0.9rem; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 0.5rem; }
+  .col-backlog .card { background: color-mix(in srgb, var(--backlog) 10%, var(--card-bg)); }
+  .col-upcoming .card { background: color-mix(in srgb, var(--upcoming) 10%, var(--card-bg)); }
+  .col-working .card { background: color-mix(in srgb, var(--working) 10%, var(--card-bg)); }
+  .col-launched .card { background: color-mix(in srgb, var(--launched) 10%, var(--card-bg)); }
   @media (prefers-reduced-motion: no-preference) {
     .card { transition: transform 120ms ease, box-shadow 120ms ease; }
     .card:hover { transform: translateY(-1px); box-shadow: 0 3px 10px rgba(0, 0, 0, 0.18); }
