@@ -109,6 +109,48 @@ test('composite foreign key lists all columns on both sides', () => {
   expect(line).toContain('FOREIGN KEY ([X], [Y]) REFERENCES [P] ([A], [B])');
 });
 
+test('removed foreign key is a commented DROP CONSTRAINT', () => {
+  const before = 'Table P {\n  Id INT [pk]\n}\nTable C {\n  Id INT [pk]\n  Pid INT [ref: > P.Id]\n}';
+  const after = 'Table P {\n  Id INT [pk]\n}\nTable C {\n  Id INT [pk]\n  Pid INT\n}';
+  const out = emitMigration(diff(before, after));
+  const line = out.split('\n').find((l) => l.includes('ALTER TABLE') && l.includes('DROP CONSTRAINT'));
+  expect(line).toBeDefined();
+  expect(line.trim().startsWith('--')).toBe(true);
+  expect(line).toContain('[FK_C_P_Pid]');
+});
+
+test('retargeted foreign key drops the old (commented) and adds the new (live)', () => {
+  const before = 'Table P1 {\n  Id INT [pk]\n}\nTable P2 {\n  Id INT [pk]\n}\nTable C {\n  Id INT [pk]\n  Pid INT [ref: > P1.Id]\n}';
+  const after = 'Table P1 {\n  Id INT [pk]\n}\nTable P2 {\n  Id INT [pk]\n}\nTable C {\n  Id INT [pk]\n  Pid INT [ref: > P2.Id]\n}';
+  const out = emitMigration(diff(before, after));
+  const dropLine = out.split('\n').find((l) => l.includes('ALTER TABLE') && l.includes('DROP CONSTRAINT'));
+  const addLine = out.split('\n').find((l) => l.includes('ADD CONSTRAINT'));
+  expect(dropLine).toContain('[FK_C_P1_Pid]');
+  expect(dropLine.trim().startsWith('--')).toBe(true);
+  expect(addLine).toContain('[FK_C_P2_Pid]');
+  expect(addLine.trim().startsWith('--')).toBe(false);
+  expect(addLine).toContain('REFERENCES [P2] ([Id])');
+});
+
+test('added-only FK diff does not print the DROP-name caveat', () => {
+  const before = 'Table Customers {\n  Id INT [pk]\n}\nTable Orders {\n  Id INT [pk]\n  CustomerId INT\n}';
+  const after = 'Table Customers {\n  Id INT [pk]\n}\nTable Orders {\n  Id INT [pk]\n  CustomerId INT [ref: > Customers.Id]\n}';
+  const out = emitMigration(diff(before, after));
+  expect(out).toContain('-- === foreign keys ===');
+  expect(out).not.toContain('synthesized name');
+});
+
+test('unresolved ref change is a comment, not a live constraint', () => {
+  const before = 'Table A {\n  Id INT [pk]\n}\nTable B {\n  Id INT [pk]\n}\nTable D {\n  Id INT [pk]\n}\nTable C {\n  Id INT [pk]\n  Pid INT\n}\nRef: C.Pid > A.Id\nRef: C.Pid > B.Id';
+  const after = 'Table A {\n  Id INT [pk]\n}\nTable B {\n  Id INT [pk]\n}\nTable D {\n  Id INT [pk]\n}\nTable C {\n  Id INT [pk]\n  Pid INT\n}\nRef: C.Pid > D.Id';
+  const result = diff(before, after);
+  expect(result.refs.unresolved.length).toBeGreaterThan(0); // guard: genuinely unresolved
+  const out = emitMigration(result);
+  expect(out).toContain('-- UNRESOLVED ref change');
+  const liveConstraint = out.split('\n').filter((l) => !l.trim().startsWith('--') && l.includes('CONSTRAINT'));
+  expect(liveConstraint).toEqual([]);
+});
+
 describe('emitMigration (v1 -> v2 fixtures)', () => {
   const result = diff(v1, v2);
   const sql = emitMigration(result, { oldLabel: 'v1.dbml', newLabel: 'v2.dbml', date: DATE });
