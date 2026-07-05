@@ -75,6 +75,10 @@ describe('emit (v1 -> v2 fixtures)', () => {
   });
 });
 
+test('emitMigration is exported from the package entry point', () => {
+  expect(typeof require('../lib').emitMigration).toBe('function');
+});
+
 describe('emitMigration (v1 -> v2 fixtures)', () => {
   const result = diff(v1, v2);
   const sql = emitMigration(result, { oldLabel: 'v1.dbml', newLabel: 'v2.dbml', date: DATE });
@@ -138,6 +142,10 @@ describe('emitMigration (v1 -> v2 fixtures)', () => {
       .filter((l) => !l.trim().startsWith('--'))
       .filter((l) => /\bDROP\b/i.test(l));
     expect(offending).toEqual([]);
+  });
+
+  test('emitMigration output matches snapshot', () => {
+    expect(sql).toMatchSnapshot();
   });
 });
 
