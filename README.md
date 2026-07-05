@@ -88,7 +88,8 @@ transforms a database from the old schema to the new one, instead of a diff:
 
 What it emits live (uncommented):
 
-- Added tables become `CREATE TABLE` (with a `PK_<table>` primary-key constraint).
+- Added tables become `CREATE TABLE` (with a `PK_<table>` constraint when the
+  table has a primary key).
 - Added columns become `ALTER TABLE ... ADD`.
 - Type or nullability changes become `ALTER TABLE ... ALTER COLUMN` (the full
   target type is restated, as T-SQL requires).
