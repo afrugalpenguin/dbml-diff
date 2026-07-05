@@ -97,6 +97,33 @@ describe('emitMigration (v1 -> v2 fixtures)', () => {
     expect(sql).toContain('[Title] NVARCHAR(100) NOT NULL');
     expect(sql).toMatch(/CONSTRAINT \[PK_PlanKind\] PRIMARY KEY \(\[Id\]\)/);
   });
+
+  test('added column becomes a live ALTER TABLE ADD', () => {
+    expect(sql).toContain('ALTER TABLE [dbo].[Subscriptions] ADD [PlanKindId] INT NOT NULL;');
+  });
+
+  test('NOT NULL added column carries a non-empty-table warning', () => {
+    const line = sql.split('\n').find((l) => l.includes('ADD [PlanKindId]'));
+    expect(line).toMatch(/NOTE: fails on non-empty table without a default/);
+  });
+
+  test('type/nullability change becomes a live ALTER COLUMN restating full type', () => {
+    expect(sql).toContain('ALTER TABLE [dbo].[Refunds] ALTER COLUMN [ProcessedOn] BIGINT NULL;');
+    expect(sql).toContain('ALTER TABLE [dbo].[Subscriptions] ALTER COLUMN [EnrolledOn] DATETIME NULL;');
+  });
+
+  test('heuristic rename is emitted commented as sp_rename', () => {
+    const line = sql.split('\n').find((l) => l.includes('sp_rename'));
+    expect(line).toBeDefined();
+    expect(line.trim().startsWith('--')).toBe(true);
+    expect(line).toContain("'dbo.SubscriptionLines.ZoneId', 'GeoZoneId', 'COLUMN'");
+  });
+
+  test('dropped column is emitted commented', () => {
+    const line = sql.split('\n').find((l) => l.includes('DROP COLUMN [CarrierLabel]'));
+    expect(line).toBeDefined();
+    expect(line.trim().startsWith('--')).toBe(true);
+  });
 });
 
 describe('emit (enums)', () => {
