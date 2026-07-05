@@ -5,6 +5,19 @@ All notable changes to this project are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- `--migrate` flag and `emitMigration()` API: generate a T-SQL migration script
+  (CREATE / ALTER / foreign-key constraints) from a schema diff. Additive
+  statements (CREATE TABLE, ALTER ADD/COLUMN, added `ADD CONSTRAINT`) are live;
+  destructive (DROP) and heuristic (rename) statements, plus removed and
+  retargeted-old foreign keys, are emitted commented out; ambiguous ref changes
+  are emitted as a comment. Enums and TableGroups are not represented in SQL. A
+  refs-only or groups-only diff now correctly exits 1 and is summarized on
+  stderr. (#18)
+
 ## [0.3.0] - 2026-07-04
 
 ### Added

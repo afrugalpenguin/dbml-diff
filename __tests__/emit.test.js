@@ -3,7 +3,7 @@
 const fs = require('fs');
 const path = require('path');
 const { Parser } = require('@dbml/core');
-const { diff, emitText, emitJson, emitDbml } = require('../lib');
+const { diff, emitText, emitJson, emitDbml, emitMigration } = require('../lib');
 
 const FIXTURES = path.join(__dirname, 'fixtures');
 const v1 = fs.readFileSync(path.join(FIXTURES, 'v1.dbml'), 'utf8');
@@ -72,6 +72,174 @@ describe('emit (v1 -> v2 fixtures)', () => {
   ])('emitDbml output (%s) parses cleanly back through @dbml/core', (_label, opts) => {
     const out = emitDbml(result, { oldLabel: 'v1.dbml', newLabel: 'v2.dbml', date: DATE, ...opts });
     expect(() => new Parser().parse(out, 'dbmlv2')).not.toThrow();
+  });
+});
+
+test('emitMigration is exported from the package entry point', () => {
+  expect(typeof require('../lib').emitMigration).toBe('function');
+});
+
+test('a refs-only diff is not reported as no schema changes', () => {
+  const before = 'Table Customers {\n  Id INT [pk]\n}\nTable Orders {\n  Id INT [pk]\n  CustomerId INT\n}';
+  const after = 'Table Customers {\n  Id INT [pk]\n}\nTable Orders {\n  Id INT [pk]\n  CustomerId INT [ref: > Customers.Id]\n}';
+  const out = emitMigration(diff(before, after));
+  expect(out).not.toBe('-- No schema changes.');
+  expect(out).toContain('Schema migration');
+});
+
+test('added foreign key becomes a live ADD CONSTRAINT with a note', () => {
+  const before = 'Table Customers {\n  Id INT [pk]\n}\nTable Orders {\n  Id INT [pk]\n  CustomerId INT\n}';
+  const after = 'Table Customers {\n  Id INT [pk]\n}\nTable Orders {\n  Id INT [pk]\n  CustomerId INT [ref: > Customers.Id]\n}';
+  const out = emitMigration(diff(before, after));
+  const line = out.split('\n').find((l) => l.includes('ADD CONSTRAINT'));
+  expect(line).toBeDefined();
+  expect(line.trim().startsWith('--')).toBe(false); // live
+  expect(line).toContain('ALTER TABLE [Orders] ADD CONSTRAINT [FK_Orders_Customers_CustomerId]');
+  expect(line).toContain('FOREIGN KEY ([CustomerId]) REFERENCES [Customers] ([Id])');
+  expect(line).toMatch(/NOTE: fails if existing rows violate it/);
+  expect(out).toContain('-- === foreign keys ===');
+});
+
+test('composite foreign key lists all columns on both sides', () => {
+  const before = 'Table P {\n  A INT\n  B INT\n  indexes { (A,B) [pk] }\n}\nTable C {\n  Id INT [pk]\n  X INT\n  Y INT\n}';
+  const after = before + '\nRef: C.(X, Y) > P.(A, B)';
+  const out = emitMigration(diff(before, after));
+  const line = out.split('\n').find((l) => l.includes('ADD CONSTRAINT'));
+  expect(line).toContain('[FK_C_P_X_Y]');
+  expect(line).toContain('FOREIGN KEY ([X], [Y]) REFERENCES [P] ([A], [B])');
+});
+
+test('removed foreign key is a commented DROP CONSTRAINT', () => {
+  const before = 'Table P {\n  Id INT [pk]\n}\nTable C {\n  Id INT [pk]\n  Pid INT [ref: > P.Id]\n}';
+  const after = 'Table P {\n  Id INT [pk]\n}\nTable C {\n  Id INT [pk]\n  Pid INT\n}';
+  const out = emitMigration(diff(before, after));
+  const line = out.split('\n').find((l) => l.includes('ALTER TABLE') && l.includes('DROP CONSTRAINT'));
+  expect(line).toBeDefined();
+  expect(line.trim().startsWith('--')).toBe(true);
+  expect(line).toContain('[FK_C_P_Pid]');
+});
+
+test('retargeted foreign key drops the old (commented) and adds the new (live)', () => {
+  const before = 'Table P1 {\n  Id INT [pk]\n}\nTable P2 {\n  Id INT [pk]\n}\nTable C {\n  Id INT [pk]\n  Pid INT [ref: > P1.Id]\n}';
+  const after = 'Table P1 {\n  Id INT [pk]\n}\nTable P2 {\n  Id INT [pk]\n}\nTable C {\n  Id INT [pk]\n  Pid INT [ref: > P2.Id]\n}';
+  const out = emitMigration(diff(before, after));
+  const dropLine = out.split('\n').find((l) => l.includes('ALTER TABLE') && l.includes('DROP CONSTRAINT'));
+  const addLine = out.split('\n').find((l) => l.includes('ADD CONSTRAINT'));
+  expect(dropLine).toContain('[FK_C_P1_Pid]');
+  expect(dropLine.trim().startsWith('--')).toBe(true);
+  expect(addLine).toContain('[FK_C_P2_Pid]');
+  expect(addLine.trim().startsWith('--')).toBe(false);
+  expect(addLine).toContain('REFERENCES [P2] ([Id])');
+});
+
+test('SAFETY: FK-heavy diff still emits no uncommented DROP', () => {
+  const before = 'Table P1 {\n  Id INT [pk]\n}\nTable P2 {\n  Id INT [pk]\n}\nTable C {\n  Id INT [pk]\n  Pid INT [ref: > P1.Id]\n  Qid INT [ref: > P2.Id]\n}';
+  const after = 'Table P1 {\n  Id INT [pk]\n}\nTable P2 {\n  Id INT [pk]\n}\nTable C {\n  Id INT [pk]\n  Pid INT [ref: > P2.Id]\n}';
+  const out = emitMigration(diff(before, after));
+  const offending = out.split('\n').filter((l) => !l.trim().startsWith('--')).filter((l) => /\bDROP\b/i.test(l));
+  expect(offending).toEqual([]);
+});
+
+test('added-only FK diff does not print the DROP-name caveat', () => {
+  const before = 'Table Customers {\n  Id INT [pk]\n}\nTable Orders {\n  Id INT [pk]\n  CustomerId INT\n}';
+  const after = 'Table Customers {\n  Id INT [pk]\n}\nTable Orders {\n  Id INT [pk]\n  CustomerId INT [ref: > Customers.Id]\n}';
+  const out = emitMigration(diff(before, after));
+  expect(out).toContain('-- === foreign keys ===');
+  expect(out).not.toContain('synthesized name');
+});
+
+test('unresolved ref change is a comment, not a live constraint', () => {
+  const before = 'Table A {\n  Id INT [pk]\n}\nTable B {\n  Id INT [pk]\n}\nTable D {\n  Id INT [pk]\n}\nTable C {\n  Id INT [pk]\n  Pid INT\n}\nRef: C.Pid > A.Id\nRef: C.Pid > B.Id';
+  const after = 'Table A {\n  Id INT [pk]\n}\nTable B {\n  Id INT [pk]\n}\nTable D {\n  Id INT [pk]\n}\nTable C {\n  Id INT [pk]\n  Pid INT\n}\nRef: C.Pid > D.Id';
+  const result = diff(before, after);
+  expect(result.refs.unresolved.length).toBeGreaterThan(0); // guard: genuinely unresolved
+  const out = emitMigration(result);
+  expect(out).toContain('-- UNRESOLVED ref change');
+  const liveConstraint = out.split('\n').filter((l) => !l.trim().startsWith('--') && l.includes('CONSTRAINT'));
+  expect(liveConstraint).toEqual([]);
+});
+
+describe('emitMigration (v1 -> v2 fixtures)', () => {
+  const result = diff(v1, v2);
+  const sql = emitMigration(result, { oldLabel: 'v1.dbml', newLabel: 'v2.dbml', date: DATE });
+
+  test('opens with a header banner naming the dialect and safety caveat', () => {
+    const lines = sql.split('\n');
+    expect(lines[0]).toBe('-- Schema migration: v1.dbml -> v2.dbml');
+    expect(sql).toContain('-- Generated by dbml-diff on 2026-01-01');
+    expect(sql).toContain('T-SQL');
+    expect(sql).toMatch(/destructive .*commented/i);
+  });
+
+  test('identical schemas produce a no-op comment', () => {
+    expect(emitMigration(diff(v1, v1))).toBe('-- No schema changes.');
+  });
+
+  test('added table becomes a live CREATE TABLE with a PK constraint', () => {
+    expect(sql).toContain('CREATE TABLE [dbo].[PlanKind] (');
+    expect(sql).toContain('[Id] INT NOT NULL');
+    expect(sql).toContain('[Title] NVARCHAR(100) NOT NULL');
+    expect(sql).toMatch(/CONSTRAINT \[PK_PlanKind\] PRIMARY KEY \(\[Id\]\)/);
+  });
+
+  test('added column becomes a live ALTER TABLE ADD', () => {
+    expect(sql).toContain('ALTER TABLE [dbo].[Subscriptions] ADD [PlanKindId] INT NOT NULL;');
+  });
+
+  test('NOT NULL added column carries a non-empty-table warning', () => {
+    const line = sql.split('\n').find((l) => l.includes('ADD [PlanKindId]'));
+    expect(line).toMatch(/NOTE: fails on non-empty table without a default/);
+  });
+
+  test('type/nullability change becomes a live ALTER COLUMN restating full type', () => {
+    expect(sql).toContain('ALTER TABLE [dbo].[Refunds] ALTER COLUMN [ProcessedOn] BIGINT NULL;');
+    expect(sql).toContain('ALTER TABLE [dbo].[Subscriptions] ALTER COLUMN [EnrolledOn] DATETIME NULL;');
+  });
+
+  test('loosening a column to nullable carries no warning', () => {
+    const line = sql.split('\n').find((l) => l.includes('ALTER COLUMN [EnrolledOn]'));
+    expect(line).not.toMatch(/NOTE/);
+  });
+
+  test('tightening a column to NOT NULL carries a NULLs warning', () => {
+    const before = 'Table t {\n  id INT [pk]\n  x INT\n}';
+    const after = 'Table t {\n  id INT [pk]\n  x INT [not null]\n}';
+    const out = emitMigration(diff(before, after));
+    const line = out.split('\n').find((l) => l.includes('ALTER COLUMN [x]'));
+    expect(line).toContain('[x] INT NOT NULL;');
+    expect(line).toMatch(/NOTE: fails if the column contains NULLs/);
+  });
+
+  test('heuristic rename is emitted commented as sp_rename', () => {
+    const line = sql.split('\n').find((l) => l.includes('sp_rename'));
+    expect(line).toBeDefined();
+    expect(line.trim().startsWith('--')).toBe(true);
+    expect(line).toContain("'dbo.SubscriptionLines.ZoneId', 'GeoZoneId', 'COLUMN'");
+  });
+
+  test('dropped column is emitted commented', () => {
+    const line = sql.split('\n').find((l) => l.includes('DROP COLUMN [CarrierLabel]'));
+    expect(line).toBeDefined();
+    expect(line.trim().startsWith('--')).toBe(true);
+  });
+
+  test('removed table is emitted commented as DROP TABLE', () => {
+    const line = sql.split('\n').find((l) => l.includes('DROP TABLE'));
+    expect(line).toBeDefined();
+    expect(line).toContain('[dbo].[LegacyLog]');
+    expect(line.trim().startsWith('--')).toBe(true);
+  });
+
+  test('SAFETY: no uncommented DROP statement anywhere', () => {
+    const offending = sql
+      .split('\n')
+      .filter((l) => !l.trim().startsWith('--'))
+      .filter((l) => /\bDROP\b/i.test(l));
+    expect(offending).toEqual([]);
+  });
+
+  test('emitMigration output matches snapshot', () => {
+    expect(sql).toMatchSnapshot();
   });
 });
 

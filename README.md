@@ -43,6 +43,10 @@ Options:
                               removed) instead of relying on name prefixes
                               alone. Requires dbdiagram paid tier to render;
                               name prefixes are always emitted regardless.
+  --migrate                   emit a T-SQL migration script (ALTER/CREATE DDL)
+                              instead of a diff; DROP and heuristic RENAME
+                              statements are commented out. Cannot be combined
+                              with --format. Honors -o.
   -o, --output <file>         write to file instead of stdout
   -h, --help                  usage
   --version                   package version
@@ -75,10 +79,54 @@ Relationship (`Ref:`) changes are reported in the `diff_summary` note (and in `-
 3. Paste the contents of `diff.dbml` into the editor.
 4. The diagram now shows only what changed: scan for the `NEW ·` / `MOD ·` / `DEL ·` tables, and hover the annotated columns to read the change notes. With `--colors` (paid tier) the table headers are colour-coded too.
 
+## Migration script (`--migrate`)
+
+`--migrate` emits a T-SQL migration script (SQL Server / Azure Synapse) that
+transforms a database from the old schema to the new one, instead of a diff:
+
+    dbml-diff old.dbml new.dbml --migrate -o up.sql
+
+What it emits live (uncommented):
+
+- Added tables become `CREATE TABLE` (with a `PK_<table>` constraint when the
+  table has a primary key).
+- Added columns become `ALTER TABLE ... ADD`.
+- Type or nullability changes become `ALTER TABLE ... ALTER COLUMN` (the full
+  target type is restated, as T-SQL requires).
+- Added foreign keys become `ALTER TABLE ... ADD CONSTRAINT ... FOREIGN KEY`
+  (with an inline `-- NOTE` that it fails if existing rows violate the constraint).
+
+For safety, destructive and heuristic statements are emitted **commented out**, so
+a pasted script cannot cause data loss on a straight run - review and uncomment
+them deliberately:
+
+- Removed tables (`-- DROP TABLE ...`) and removed columns
+  (`-- ALTER TABLE ... DROP COLUMN ...`).
+- Rename candidates (`-- EXEC sp_rename ...`), which are heuristic - verify
+  before running.
+- Removed foreign keys, and the old side of a retargeted foreign key
+  (`-- ALTER TABLE ... DROP CONSTRAINT ...`). A retargeted key comments the old
+  drop and emits the new `ADD CONSTRAINT` live.
+- Ambiguous (unresolved) ref changes, emitted as an `-- UNRESOLVED ref change`
+  comment for you to resolve by hand.
+
+Caveats:
+
+- Adding a `NOT NULL` column to a table that already has rows fails without a
+  default, and tightening an existing column to `NOT NULL` fails if it holds any
+  NULLs; both carry an inline `-- NOTE`.
+- Enums and TableGroups are not represented in the SQL output.
+- The generated FK constraint name (`FK_<child>_<parent>_<childCols>`) is
+  synthesized and unqualified, so it will usually differ from the real
+  constraint name in your database. Adjust the name on any `DROP CONSTRAINT`
+  line before uncommenting it.
+- `--migrate` cannot be combined with `--format`, and T-SQL is currently the
+  only dialect.
+
 ## Programmatic API
 
 ```js
-const { diff, emitText, emitJson, emitDbml } = require('dbml-diff');
+const { diff, emitText, emitJson, emitDbml, emitMigration } = require('dbml-diff');
 
 const result = diff(oldDbmlString, newDbmlString);
 // {
@@ -114,6 +162,7 @@ const result = diff(oldDbmlString, newDbmlString);
 console.log(emitText(result));
 console.log(emitJson(result));
 console.log(emitDbml(result, { oldLabel: 'v1', newLabel: 'v2', colors: true }));
+console.log(emitMigration(result, { oldLabel: 'v1', newLabel: 'v2' })); // T-SQL migration script
 ```
 
 ## Exit codes
@@ -136,7 +185,9 @@ Useful for CI gates ("fail the build if the schema changed"):
 
 **[Visual public roadmap](https://afrugalpenguin.github.io/dbml-diff/roadmap.html)** - what shipped, what's in progress, what's next. Generated from the issue tracker: issues labelled `roadmap` become cards, `status:` labels set the column, closed issues land in Launched.
 
-- `--format sql` - ALTER statement generation (see upstream [holistics/dbml#175](https://github.com/holistics/dbml/issues/175))
+- `--migrate` T-SQL migration script (`CREATE`/`ALTER`, foreign-key constraints,
+  commented `DROP`/rename) - the ALTER-generation ask in upstream
+  [holistics/dbml#175](https://github.com/holistics/dbml/issues/175).
 
 ## License
 
