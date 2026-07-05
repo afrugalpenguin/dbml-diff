@@ -8,6 +8,3 @@ testdata/
 Screenshot*.png
 
 .claude/skills/release/
-
-# Git worktrees (superpowers)
-.worktrees/
