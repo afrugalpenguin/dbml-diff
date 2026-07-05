@@ -92,6 +92,8 @@ What it emits live (uncommented):
 - Added columns become `ALTER TABLE ... ADD`.
 - Type or nullability changes become `ALTER TABLE ... ALTER COLUMN` (the full
   target type is restated, as T-SQL requires).
+- Added foreign keys become `ALTER TABLE ... ADD CONSTRAINT ... FOREIGN KEY`
+  (with an inline `-- NOTE` that it fails if existing rows violate the constraint).
 
 For safety, destructive and heuristic statements are emitted **commented out**, so
 a pasted script cannot cause data loss on a straight run - review and uncomment
@@ -101,14 +103,22 @@ them deliberately:
   (`-- ALTER TABLE ... DROP COLUMN ...`).
 - Rename candidates (`-- EXEC sp_rename ...`), which are heuristic - verify
   before running.
+- Removed foreign keys, and the old side of a retargeted foreign key
+  (`-- ALTER TABLE ... DROP CONSTRAINT ...`). A retargeted key comments the old
+  drop and emits the new `ADD CONSTRAINT` live.
+- Ambiguous (unresolved) ref changes, emitted as an `-- UNRESOLVED ref change`
+  comment for you to resolve by hand.
 
 Caveats:
 
 - Adding a `NOT NULL` column to a table that already has rows fails without a
   default, and tightening an existing column to `NOT NULL` fails if it holds any
   NULLs; both carry an inline `-- NOTE`.
-- Enums, TableGroups, and foreign keys are not represented in the SQL output.
-  Foreign-key constraint DDL is tracked separately on the roadmap.
+- Enums and TableGroups are not represented in the SQL output.
+- The generated FK constraint name (`FK_<child>_<parent>_<childCols>`) is
+  synthesized and unqualified, so it will usually differ from the real
+  constraint name in your database. Adjust the name on any `DROP CONSTRAINT`
+  line before uncommenting it.
 - `--migrate` cannot be combined with `--format`, and T-SQL is currently the
   only dialect.
 
@@ -174,7 +184,9 @@ Useful for CI gates ("fail the build if the schema changed"):
 
 **[Visual public roadmap](https://afrugalpenguin.github.io/dbml-diff/roadmap.html)** - what shipped, what's in progress, what's next. Generated from the issue tracker: issues labelled `roadmap` become cards, `status:` labels set the column, closed issues land in Launched.
 
-- `--migrate` foreign-key constraint DDL - the T-SQL migration script (CREATE/ALTER, with commented DROP and rename) shipped via `--migrate`; foreign-key constraints are still to come (see upstream [holistics/dbml#175](https://github.com/holistics/dbml/issues/175))
+- `--migrate` T-SQL migration script (`CREATE`/`ALTER`, foreign-key constraints,
+  commented `DROP`/rename) - the ALTER-generation ask in upstream
+  [holistics/dbml#175](https://github.com/holistics/dbml/issues/175).
 
 ## License
 
