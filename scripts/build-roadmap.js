@@ -87,7 +87,7 @@ function render(issues) {
   cols.launched.sort((a, b) => new Date(b.closed_at) - new Date(a.closed_at));
 
   const section = (key, name) => `    <section class="col col-${key}" aria-label="${name}">
-      <div class="col-head"><span class="dot"></span>${name}<span class="count">${cols[key].length}</span></div>
+      <div class="col-head"><span class="pill"><span class="dot"></span>${name}</span><span class="count">${cols[key].length}</span></div>
 ${cols[key].map(card).join('\n')}
     </section>`;
 
@@ -103,7 +103,7 @@ ${cols[key].map(card).join('\n')}
   :root {
     --bg: #f5f6f8; --col-bg: #eceef2; --card-bg: #ffffff; --card-border: #dfe3ea;
     --text: #1b222c; --text-soft: #4c5665; --text-faint: #7b8595; --link: #2563b0;
-    --backlog: #64748b; --upcoming: #3b82c4; --working: #d99118; --launched: #2f9e5f;
+    --backlog: #64748b; --upcoming: #cf4b57; --working: #3b82c4; --launched: #2f9e5f;
     --shadow: 0 1px 2px rgba(15, 19, 25, 0.06);
     --mono: ui-monospace, "Cascadia Code", Consolas, "SF Mono", Menlo, monospace;
     --sans: system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -113,7 +113,7 @@ ${cols[key].map(card).join('\n')}
     :root {
       --bg: #0f1319; --col-bg: #141922; --card-bg: #1a212c; --card-border: #232c39;
       --text: #e6eaf0; --text-soft: #a8b2c0; --text-faint: #6c7787; --link: #6aa5dd;
-      --backlog: #8a97a8; --upcoming: #5b9bd4; --working: #e0a42e; --launched: #46b878;
+      --backlog: #8a97a8; --upcoming: #e0707c; --working: #5b9bd4; --launched: #46b878;
       --shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
       --p0: #6fa8d6; --p1: #56b57f; --p2: #d3a13e; --p3: #a48fd6; --p4: #cf8490; --p5: #7fabab;
     }
@@ -130,14 +130,23 @@ ${cols[key].map(card).join('\n')}
   a:focus-visible { outline: 2px solid var(--upcoming); outline-offset: 2px; border-radius: 2px; }
   .board { display: flex; gap: 1rem; overflow-x: auto; padding-bottom: 1rem; }
   .col { flex: 0 0 300px; background: var(--col-bg); border-radius: 10px; padding: 0.75rem; display: flex; flex-direction: column; gap: 0.7rem; align-self: flex-start; }
-  .col-head { display: flex; align-items: center; gap: 0.5rem; font-family: var(--mono); font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-soft); padding: 0.15rem 0.25rem; }
-  .dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+  .col-head { display: flex; align-items: center; gap: 0.5rem; padding: 0.15rem 0.15rem; }
+  .pill { display: inline-flex; align-items: center; gap: 0.42rem; font-family: var(--mono); font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; padding: 0.22rem 0.62rem; border-radius: 999px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+  .col-backlog .pill { background: color-mix(in srgb, var(--backlog) 18%, transparent); color: var(--backlog); }
+  .col-upcoming .pill { background: color-mix(in srgb, var(--upcoming) 18%, transparent); color: var(--upcoming); }
+  .col-working .pill { background: color-mix(in srgb, var(--working) 18%, transparent); color: var(--working); }
+  .col-launched .pill { background: color-mix(in srgb, var(--launched) 18%, transparent); color: var(--launched); }
   .col-backlog .dot { background: var(--backlog); }
   .col-upcoming .dot { background: var(--upcoming); }
   .col-working .dot { background: var(--working); }
   .col-launched .dot { background: var(--launched); }
-  .count { margin-left: auto; font-weight: 400; color: var(--text-faint); font-variant-numeric: tabular-nums; }
-  .card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 8px; padding: 0.85rem 0.9rem; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 0.5rem; }
+  .count { margin-left: auto; font-family: var(--mono); font-size: 0.72rem; font-weight: 400; color: var(--text-faint); font-variant-numeric: tabular-nums; }
+  .card { background: var(--card-bg); border: none; border-radius: 8px; padding: 0.85rem 0.9rem; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 0.5rem; }
+  .col-backlog .card { background: color-mix(in srgb, var(--backlog) 10%, var(--card-bg)); }
+  .col-upcoming .card { background: color-mix(in srgb, var(--upcoming) 10%, var(--card-bg)); }
+  .col-working .card { background: color-mix(in srgb, var(--working) 10%, var(--card-bg)); }
+  .col-launched .card { background: color-mix(in srgb, var(--launched) 10%, var(--card-bg)); }
   @media (prefers-reduced-motion: no-preference) {
     .card { transition: transform 120ms ease, box-shadow 120ms ease; }
     .card:hover { transform: translateY(-1px); box-shadow: 0 3px 10px rgba(0, 0, 0, 0.18); }
