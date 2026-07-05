@@ -4,7 +4,7 @@
 const fs = require('fs');
 const { parseSchema } = require('../lib/parse');
 const { diffSchemas } = require('../lib/diff');
-const { emitText, emitJson, emitDbml } = require('../lib/emit');
+const { emitText, emitJson, emitDbml, emitMigration } = require('../lib/emit');
 const pkg = require('../package.json');
 
 const USAGE = `Usage: dbml-diff <old.dbml> <new.dbml> [options]
@@ -19,6 +19,10 @@ Options:
   --colors                    in dbml format, use headercolor annotations
                               (requires dbdiagram paid tier to render;
                               name prefixes are always emitted regardless)
+  --migrate                   emit a T-SQL migration script (ALTER/CREATE DDL)
+                              instead of a diff; DROP and heuristic RENAME
+                              statements are commented out. Cannot be combined
+                              with --format. Honors -o.
   -o, --output <file>         write to file instead of stdout
   -h, --help                  show this help
   --version                   print package version
@@ -36,7 +40,10 @@ Examples:
       visual diff - paste diff.dbml into https://dbdiagram.io
 
   dbml-diff old.dbml new.dbml --format json
-      machine-readable result on stdout (counts stay on stderr)`;
+      machine-readable result on stdout (counts stay on stderr)
+
+  dbml-diff old.dbml new.dbml --migrate -o up.sql
+      generate a T-SQL migration script (review before running)`;
 
 function fail(msg) {
   process.stderr.write(`${msg}\n`);
@@ -44,16 +51,18 @@ function fail(msg) {
 }
 
 function parseArgs(argv) {
-  const opts = { format: 'text', fullNewTables: false, colors: false, output: null, files: [] };
+  const opts = { format: 'text', fullNewTables: false, colors: false, migrate: false, output: null, files: [] };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === '-h' || a === '--help') opts.help = true;
     else if (a === '--version') opts.version = true;
     else if (a === '--format') {
       opts.format = argv[++i];
+      opts.formatGiven = true;
       if (opts.format === undefined) fail(`--format requires a value\n\n${USAGE}`);
     } else if (a === '--full-new-tables') opts.fullNewTables = true;
     else if (a === '--colors') opts.colors = true;
+    else if (a === '--migrate') opts.migrate = true;
     else if (a === '-o' || a === '--output') {
       opts.output = argv[++i];
       if (opts.output === undefined) fail(`${a} requires a value\n\n${USAGE}`);
@@ -105,7 +114,10 @@ function main() {
   if (opts.files.length !== 2) {
     fail(`dbml-diff: expected exactly two input files, got ${opts.files.length}\n\n${USAGE}`);
   }
-  if (!['text', 'json', 'dbml'].includes(opts.format)) {
+  if (opts.migrate && opts.formatGiven) {
+    fail(`dbml-diff: --migrate cannot be combined with --format`);
+  }
+  if (!opts.migrate && !['text', 'json', 'dbml'].includes(opts.format)) {
     fail(`dbml-diff: invalid --format "${opts.format}" (expected text, json, or dbml)`);
   }
 
@@ -115,7 +127,9 @@ function main() {
   const result = diffSchemas(oldSchema, newSchema);
 
   let out;
-  if (opts.format === 'json') out = emitJson(result);
+  if (opts.migrate) {
+    out = emitMigration(result, { oldLabel: oldFile, newLabel: newFile });
+  } else if (opts.format === 'json') out = emitJson(result);
   else if (opts.format === 'dbml') {
     out = emitDbml(result, {
       oldLabel: oldFile,
