@@ -87,6 +87,28 @@ test('a refs-only diff is not reported as no schema changes', () => {
   expect(out).toContain('Schema migration');
 });
 
+test('added foreign key becomes a live ADD CONSTRAINT with a note', () => {
+  const before = 'Table Customers {\n  Id INT [pk]\n}\nTable Orders {\n  Id INT [pk]\n  CustomerId INT\n}';
+  const after = 'Table Customers {\n  Id INT [pk]\n}\nTable Orders {\n  Id INT [pk]\n  CustomerId INT [ref: > Customers.Id]\n}';
+  const out = emitMigration(diff(before, after));
+  const line = out.split('\n').find((l) => l.includes('ADD CONSTRAINT'));
+  expect(line).toBeDefined();
+  expect(line.trim().startsWith('--')).toBe(false); // live
+  expect(line).toContain('ALTER TABLE [Orders] ADD CONSTRAINT [FK_Orders_Customers_CustomerId]');
+  expect(line).toContain('FOREIGN KEY ([CustomerId]) REFERENCES [Customers] ([Id])');
+  expect(line).toMatch(/NOTE: fails if existing rows violate it/);
+  expect(out).toContain('-- === foreign keys ===');
+});
+
+test('composite foreign key lists all columns on both sides', () => {
+  const before = 'Table P {\n  A INT\n  B INT\n  indexes { (A,B) [pk] }\n}\nTable C {\n  Id INT [pk]\n  X INT\n  Y INT\n}';
+  const after = before + '\nRef: C.(X, Y) > P.(A, B)';
+  const out = emitMigration(diff(before, after));
+  const line = out.split('\n').find((l) => l.includes('ADD CONSTRAINT'));
+  expect(line).toContain('[FK_C_P_X_Y]');
+  expect(line).toContain('FOREIGN KEY ([X], [Y]) REFERENCES [P] ([A], [B])');
+});
+
 describe('emitMigration (v1 -> v2 fixtures)', () => {
   const result = diff(v1, v2);
   const sql = emitMigration(result, { oldLabel: 'v1.dbml', newLabel: 'v2.dbml', date: DATE });
