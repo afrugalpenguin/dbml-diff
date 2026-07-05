@@ -79,6 +79,14 @@ test('emitMigration is exported from the package entry point', () => {
   expect(typeof require('../lib').emitMigration).toBe('function');
 });
 
+test('a refs-only diff is not reported as no schema changes', () => {
+  const before = 'Table Customers {\n  Id INT [pk]\n}\nTable Orders {\n  Id INT [pk]\n  CustomerId INT\n}';
+  const after = 'Table Customers {\n  Id INT [pk]\n}\nTable Orders {\n  Id INT [pk]\n  CustomerId INT [ref: > Customers.Id]\n}';
+  const out = emitMigration(diff(before, after));
+  expect(out).not.toBe('-- No schema changes.');
+  expect(out).toContain('Schema migration');
+});
+
 describe('emitMigration (v1 -> v2 fixtures)', () => {
   const result = diff(v1, v2);
   const sql = emitMigration(result, { oldLabel: 'v1.dbml', newLabel: 'v2.dbml', date: DATE });
