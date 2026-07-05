@@ -124,6 +124,21 @@ describe('emitMigration (v1 -> v2 fixtures)', () => {
     expect(line).toBeDefined();
     expect(line.trim().startsWith('--')).toBe(true);
   });
+
+  test('removed table is emitted commented as DROP TABLE', () => {
+    const line = sql.split('\n').find((l) => l.includes('DROP TABLE'));
+    expect(line).toBeDefined();
+    expect(line).toContain('[dbo].[LegacyLog]');
+    expect(line.trim().startsWith('--')).toBe(true);
+  });
+
+  test('SAFETY: no uncommented DROP statement anywhere', () => {
+    const offending = sql
+      .split('\n')
+      .filter((l) => !l.trim().startsWith('--'))
+      .filter((l) => /\bDROP\b/i.test(l));
+    expect(offending).toEqual([]);
+  });
 });
 
 describe('emit (enums)', () => {
