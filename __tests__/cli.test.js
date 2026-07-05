@@ -144,6 +144,53 @@ describe('CLI', () => {
     }
   });
 
+  test('--migrate emits ADD CONSTRAINT for a new foreign key', () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'dbml-diff-fk-'));
+    const oldF = path.join(dir, 'old.dbml');
+    const newF = path.join(dir, 'new.dbml');
+    try {
+      fs.writeFileSync(oldF, 'Table Customers {\n  Id INT [pk]\n}\nTable Orders {\n  Id INT [pk]\n  CustomerId INT\n}\n');
+      fs.writeFileSync(newF, 'Table Customers {\n  Id INT [pk]\n}\nTable Orders {\n  Id INT [pk]\n  CustomerId INT [ref: > Customers.Id]\n}\n');
+      const res = run(oldF, newF, '--migrate');
+      expect(res.status).toBe(1);
+      expect(res.stdout).toContain('ADD CONSTRAINT [FK_Orders_Customers_CustomerId]');
+      expect(res.stderr).toContain('refs added: 1');
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  test('refs-only diff exits 1 and reports refs on stderr (any format)', () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'dbml-diff-refonly-'));
+    const oldF = path.join(dir, 'old.dbml');
+    const newF = path.join(dir, 'new.dbml');
+    try {
+      fs.writeFileSync(oldF, 'Table P {\n  Id INT [pk]\n}\nTable C {\n  Id INT [pk]\n  Pid INT\n}\n');
+      fs.writeFileSync(newF, 'Table P {\n  Id INT [pk]\n}\nTable C {\n  Id INT [pk]\n  Pid INT [ref: > P.Id]\n}\n');
+      const res = run(oldF, newF);
+      expect(res.status).toBe(1);
+      expect(res.stderr).toContain('added: 0, removed: 0, modified: 0');
+      expect(res.stderr).toContain('refs added: 1');
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  test('groups-only diff exits 1 and reports groups on stderr', () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'dbml-diff-grouponly-'));
+    const oldF = path.join(dir, 'old.dbml');
+    const newF = path.join(dir, 'new.dbml');
+    try {
+      fs.writeFileSync(oldF, 'Table A {\n  Id INT [pk]\n}\nTable B {\n  Id INT [pk]\n}\n');
+      fs.writeFileSync(newF, 'Table A {\n  Id INT [pk]\n}\nTable B {\n  Id INT [pk]\n}\nTableGroup g {\n  A\n  B\n}\n');
+      const res = run(oldF, newF);
+      expect(res.status).toBe(1);
+      expect(res.stderr).toContain('groups added: 1');
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
   test('--version exits 0 and prints the package version', () => {
     const res = run('--version');
     expect(res.status).toBe(0);

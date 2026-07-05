@@ -150,14 +150,24 @@ function main() {
     process.stdout.write(out);
   }
 
-  const { counts, enums } = result;
+  const { counts, enums, refs, groups } = result;
   const enumChanges = enums.added.length + enums.removed.length + enums.modified.length;
+  const refChanges = refs.added.length + refs.removed.length +
+    refs.retargeted.length + refs.unresolved.length;
+  const groupChanges = groups.added.length + groups.removed.length + groups.modified.length;
   let summary = `added: ${counts.added}, removed: ${counts.removed}, modified: ${counts.modified}`;
   if (enumChanges) {
     summary += ` | enums added: ${enums.added.length}, removed: ${enums.removed.length}, modified: ${enums.modified.length}`;
   }
+  if (refChanges) {
+    summary += ` | refs added: ${refs.added.length}, removed: ${refs.removed.length}, retargeted: ${refs.retargeted.length}, unresolved: ${refs.unresolved.length}`;
+  }
+  if (groupChanges) {
+    summary += ` | groups added: ${groups.added.length}, removed: ${groups.removed.length}, modified: ${groups.modified.length}`;
+  }
   process.stderr.write(`${summary}\n`);
-  process.exit(counts.added + counts.removed + counts.modified + enumChanges ? 1 : 0);
+  process.exit(counts.added + counts.removed + counts.modified +
+    enumChanges + refChanges + groupChanges ? 1 : 0);
 }
 
 main();

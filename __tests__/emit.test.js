@@ -132,6 +132,14 @@ test('retargeted foreign key drops the old (commented) and adds the new (live)',
   expect(addLine).toContain('REFERENCES [P2] ([Id])');
 });
 
+test('SAFETY: FK-heavy diff still emits no uncommented DROP', () => {
+  const before = 'Table P1 {\n  Id INT [pk]\n}\nTable P2 {\n  Id INT [pk]\n}\nTable C {\n  Id INT [pk]\n  Pid INT [ref: > P1.Id]\n  Qid INT [ref: > P2.Id]\n}';
+  const after = 'Table P1 {\n  Id INT [pk]\n}\nTable P2 {\n  Id INT [pk]\n}\nTable C {\n  Id INT [pk]\n  Pid INT [ref: > P2.Id]\n}';
+  const out = emitMigration(diff(before, after));
+  const offending = out.split('\n').filter((l) => !l.trim().startsWith('--')).filter((l) => /\bDROP\b/i.test(l));
+  expect(offending).toEqual([]);
+});
+
 test('added-only FK diff does not print the DROP-name caveat', () => {
   const before = 'Table Customers {\n  Id INT [pk]\n}\nTable Orders {\n  Id INT [pk]\n  CustomerId INT\n}';
   const after = 'Table Customers {\n  Id INT [pk]\n}\nTable Orders {\n  Id INT [pk]\n  CustomerId INT [ref: > Customers.Id]\n}';
