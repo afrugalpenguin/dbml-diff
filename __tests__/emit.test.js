@@ -79,6 +79,37 @@ test('emitMigration is exported from the package entry point', () => {
   expect(typeof require('../lib').emitMigration).toBe('function');
 });
 
+describe('emit dbml summary table (free-tier canvas)', () => {
+  const result = diff(v1, v2); // counts: added 1, removed 1, modified 4
+
+  test('emits a DIFF SUMMARY table carrying the old->new labels, not a paid Note block', () => {
+    const out = emitDbml(result, { oldLabel: 'v1.dbml', newLabel: 'v2.dbml', date: DATE });
+    expect(out).toContain('Table "DIFF SUMMARY  ·  v1.dbml -> v2.dbml"');
+    expect(out).not.toContain('Note diff_summary');
+  });
+
+  test('always emits the three table-count rows with counts as the column type', () => {
+    const out = emitDbml(result, { date: DATE });
+    expect(out).toContain('"Tables added" "1"');
+    expect(out).toContain('"Tables removed" "1"');
+    expect(out).toContain('"Tables modified" "4"');
+  });
+
+  test('a table-only diff shows the table rows but no enum/ref/group rows', () => {
+    const tableOnly = diff('Table t { id int [pk] }', 'Table t { id int [pk]\n  name varchar(50) }');
+    const out = emitDbml(tableOnly, { date: DATE });
+    expect(out).toContain('"Tables modified" "1"');
+    expect(out).not.toContain('"Enums added"');
+    expect(out).not.toContain('"Refs added"');
+    expect(out).not.toContain('"Groups added"');
+  });
+
+  test('the summary table parses cleanly back through @dbml/core', () => {
+    const out = emitDbml(result, { date: DATE });
+    expect(() => new Parser().parse(out, 'dbmlv2')).not.toThrow();
+  });
+});
+
 test('a refs-only diff is not reported as no schema changes', () => {
   const before = 'Table Customers {\n  Id INT [pk]\n}\nTable Orders {\n  Id INT [pk]\n  CustomerId INT\n}';
   const after = 'Table Customers {\n  Id INT [pk]\n}\nTable Orders {\n  Id INT [pk]\n  CustomerId INT [ref: > Customers.Id]\n}';
@@ -281,7 +312,7 @@ Enum status {
   test('emitDbml renders an added enum with the NEW prefix', () => {
     const out = emitDbml(added(), { date: DATE });
     expect(out).toContain('Enum "NEW · status"');
-    expect(out).toContain('Enums added: 1');
+    expect(out).toContain('"Enums added" "1"');
   });
 
   test('emitDbml renders a modified enum with ADDED/REMOVED value notes', () => {
@@ -341,9 +372,9 @@ Table comments { id int [pk] }
     expect(out).toContain('- table posts');
   });
 
-  test('emitDbml records group counts in the summary note', () => {
+  test('emitDbml records group counts in the summary table', () => {
     const out = emitDbml(added(), { date: DATE });
-    expect(out).toContain('Groups added: 1');
+    expect(out).toContain('"Groups added" "1"');
   });
 
   test('emitDbml group output parses cleanly back through @dbml/core', () => {
@@ -401,9 +432,9 @@ Ref: posts.uid > posts.id`,
     expect(out).toContain('? posts.uid ambiguous:');
   });
 
-  test('emitDbml records ref counts in the summary note', () => {
+  test('emitDbml records ref counts in the summary table', () => {
     const out = emitDbml(retargeted(), { date: DATE });
-    expect(out).toContain('Refs retargeted: 1');
+    expect(out).toContain('"Refs retargeted" "1"');
   });
 
   test('emitDbml ref output parses cleanly back through @dbml/core', () => {

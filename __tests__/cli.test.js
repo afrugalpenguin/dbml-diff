@@ -64,7 +64,7 @@ describe('CLI', () => {
       expect(res.stdout).toBe('');
       expect(res.stderr).toContain('added: 1, removed: 1, modified: 4');
       const written = fs.readFileSync(out, 'utf8');
-      expect(written).toContain('Note diff_summary {');
+      expect(written).toContain('Table "DIFF SUMMARY');
       expect(written).toContain('Table "NEW · dbo.PlanKind"');
     } finally {
       fs.rmSync(dir, { recursive: true, force: true });

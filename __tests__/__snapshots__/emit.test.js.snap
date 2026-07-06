@@ -10,25 +10,11 @@ exports[`emit (v1 -> v2 fixtures) emitDbml default matches snapshot 1`] = `
   MOD tables show only the primary key + changed columns.
 */
 
-Note diff_summary {
-  '''
-  ## Schema diff: v1.dbml -> v2.dbml
-  - Tables added: 1
-  - Tables removed: 1
-  - Tables modified: 4
-  - Groups added: 1
-  - Groups removed: 0
-  - Groups modified: 0
-
-  **Added**: dbo.PlanKind
-
-  **Removed**: dbo.LegacyLog
-
-  **Modified**: dbo.Shipments, dbo.Subscriptions, dbo.SubscriptionLines, dbo.Refunds
-
-  **Group changes**:
-  + Lookups (dbo.PlanKind)
-  '''
+Table "DIFF SUMMARY  ·  v1.dbml -> v2.dbml" {
+  "Tables added" "1"
+  "Tables removed" "1"
+  "Tables modified" "4"
+  "Groups added" "1"
 }
 
 ////////// MODIFIED TABLES //////////
@@ -81,25 +67,11 @@ exports[`emit (v1 -> v2 fixtures) emitDbml with colors matches snapshot 1`] = `
   MOD tables show only the primary key + changed columns.
 */
 
-Note diff_summary {
-  '''
-  ## Schema diff: v1.dbml -> v2.dbml
-  - Tables added: 1
-  - Tables removed: 1
-  - Tables modified: 4
-  - Groups added: 1
-  - Groups removed: 0
-  - Groups modified: 0
-
-  **Added**: dbo.PlanKind
-
-  **Removed**: dbo.LegacyLog
-
-  **Modified**: dbo.Shipments, dbo.Subscriptions, dbo.SubscriptionLines, dbo.Refunds
-
-  **Group changes**:
-  + Lookups (dbo.PlanKind)
-  '''
+Table "DIFF SUMMARY  ·  v1.dbml -> v2.dbml" {
+  "Tables added" "1"
+  "Tables removed" "1"
+  "Tables modified" "4"
+  "Groups added" "1"
 }
 
 ////////// MODIFIED TABLES //////////
@@ -152,25 +124,11 @@ exports[`emit (v1 -> v2 fixtures) emitDbml with fullNewTables matches snapshot 1
   MOD tables show only the primary key + changed columns.
 */
 
-Note diff_summary {
-  '''
-  ## Schema diff: v1.dbml -> v2.dbml
-  - Tables added: 1
-  - Tables removed: 1
-  - Tables modified: 4
-  - Groups added: 1
-  - Groups removed: 0
-  - Groups modified: 0
-
-  **Added**: dbo.PlanKind
-
-  **Removed**: dbo.LegacyLog
-
-  **Modified**: dbo.Shipments, dbo.Subscriptions, dbo.SubscriptionLines, dbo.Refunds
-
-  **Group changes**:
-  + Lookups (dbo.PlanKind)
-  '''
+Table "DIFF SUMMARY  ·  v1.dbml -> v2.dbml" {
+  "Tables added" "1"
+  "Tables removed" "1"
+  "Tables modified" "4"
+  "Groups added" "1"
 }
 
 ////////// MODIFIED TABLES //////////

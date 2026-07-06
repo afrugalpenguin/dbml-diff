@@ -5,6 +5,19 @@ All notable changes to this project are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- `--format dbml`: the diff summary is now emitted as a `DIFF SUMMARY` table
+  instead of a standalone `Note diff_summary` block. dbdiagram renders standalone
+  notes (Sticky Notes) only on paid tiers, so free-tier users never saw the
+  summary; a table always renders. Each metric is a column (label as the name,
+  count as the type). The three table counts always show; enum/ref/group rows
+  show only for categories that changed. Affected-table names and per-ref/group
+  detail are dropped from the diagram (still available in `--format text` and
+  `--format json`). (#62)
+
 ## [0.4.0] - 2026-07-05
 
 ### Added
