@@ -166,7 +166,9 @@ test('added table with an un-annotated PK column renders that column NOT NULL', 
   const idLine = out.split('\n').find((l) => /^\s+\[Id\]/.test(l));
   expect(idLine).toBeDefined();
   expect(idLine).toMatch(/NOT NULL/);
-  expect(idLine).not.toMatch(/\bNULL\b(?!\s*NOT)/);
+  // Reject a bare NULL — a NULL not preceded by NOT. (A naive /NULL/ or a
+  // look-*ahead* would also flag the NULL inside "NOT NULL"; use a lookbehind.)
+  expect(idLine).not.toMatch(/(?<!NOT )\bNULL\b/);
 });
 
 describe('emitMigration (v1 -> v2 fixtures)', () => {
