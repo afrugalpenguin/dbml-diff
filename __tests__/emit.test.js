@@ -159,6 +159,16 @@ test('unresolved ref change is a comment, not a live constraint', () => {
   expect(liveConstraint).toEqual([]);
 });
 
+test('added table with an un-annotated PK column renders that column NOT NULL', () => {
+  const before = 'Table Customers {\n  Id INT [pk]\n}';
+  const after = 'Table Customers {\n  Id INT [pk]\n}\nTable dbo.Settlement {\n  Id int [pk]\n  Amount decimal(18,2)\n}';
+  const out = emitMigration(diff(before, after));
+  const idLine = out.split('\n').find((l) => /^\s+\[Id\]/.test(l));
+  expect(idLine).toBeDefined();
+  expect(idLine).toMatch(/NOT NULL/);
+  expect(idLine).not.toMatch(/\bNULL\b(?!\s*NOT)/);
+});
+
 describe('emitMigration (v1 -> v2 fixtures)', () => {
   const result = diff(v1, v2);
   const sql = emitMigration(result, { oldLabel: 'v1.dbml', newLabel: 'v2.dbml', date: DATE });

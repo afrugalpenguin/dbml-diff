@@ -119,6 +119,44 @@ Table audit { id int [pk] }`;
     expect(m.columnsAdded).toHaveLength(1);
   });
 
+  test('detects a column gaining PK membership', () => {
+    const a = `Table t { id int [pk]
+  code int }`;
+    const b = `Table t { id int [pk]
+  code int [pk] }`;
+    const result = diff(a, b);
+    const m = result.tables.modified[0];
+    expect(m.columnsChanged).toHaveLength(1);
+    expect(m.columnsChanged[0].column.name).toBe('code');
+    // 'became PK' is a placeholder — it must match whatever marker lib/diff.js ends up emitting.
+    expect(m.columnsChanged[0].changes).toContain('became PK');
+  });
+
+  test('detects a column losing PK membership', () => {
+    const a = `Table t { id int [pk]
+  code int [pk] }`;
+    const b = `Table t { id int [pk]
+  code int }`;
+    const result = diff(a, b);
+    const m = result.tables.modified[0];
+    expect(m.columnsChanged).toHaveLength(1);
+    expect(m.columnsChanged[0].column.name).toBe('code');
+    // 'no longer PK' is a placeholder — it must match whatever marker lib/diff.js ends up emitting.
+    expect(m.columnsChanged[0].changes).toContain('no longer PK');
+  });
+
+  test('rename heuristic does NOT bridge a PK column and a non-PK column of the same signature', () => {
+    const a = `Table t { id int
+  Alpha int [pk] }`;
+    const b = `Table t { id int
+  Beta int }`;
+    const result = diff(a, b);
+    const m = result.tables.modified[0];
+    expect(m.renames).toHaveLength(0);
+    expect(m.columnsRemoved.map((c) => c.name)).toEqual(['Alpha']);
+    expect(m.columnsAdded.map((c) => c.name)).toEqual(['Beta']);
+  });
+
   test('identical schemas produce zero counts', () => {
     const s = `Table users { id int [pk]
   name varchar(50) [not null] }`;
