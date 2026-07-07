@@ -128,7 +128,8 @@ Table audit { id int [pk] }`;
     const m = result.tables.modified[0];
     expect(m.columnsChanged).toHaveLength(1);
     expect(m.columnsChanged[0].column.name).toBe('code');
-    // 'became PK' is a placeholder — it must match whatever marker lib/diff.js ends up emitting.
+    // toContain (not toEqual) so this still holds if a PK change ever
+    // co-occurs with a type change in the same .changes array.
     expect(m.columnsChanged[0].changes).toContain('became PK');
   });
 
@@ -141,7 +142,8 @@ Table audit { id int [pk] }`;
     const m = result.tables.modified[0];
     expect(m.columnsChanged).toHaveLength(1);
     expect(m.columnsChanged[0].column.name).toBe('code');
-    // 'no longer PK' is a placeholder — it must match whatever marker lib/diff.js ends up emitting.
+    // toContain (not toEqual) so this still holds if a PK change ever
+    // co-occurs with a type change in the same .changes array.
     expect(m.columnsChanged[0].changes).toContain('no longer PK');
   });
 
