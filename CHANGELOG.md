@@ -14,6 +14,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - A column gaining or losing primary-key membership (with type and nullability
   otherwise unchanged) is now detected and reported as a changed column
   (`became PK` / `no longer PK`). (#65)
+- `--migrate`: an added table with an un-annotated PK column now emits that
+  column as `NOT NULL` in its `CREATE TABLE`, instead of an invalid explicit
+  `NULL` under a `PRIMARY KEY` constraint (SQL Server Msg 8111). (#66)
 - `--migrate`: a PK-only membership change no longer emits a no-op `ALTER COLUMN`
   that both fails to apply the PK and could render a becoming-PK column as `NULL`.
   The membership change is now surfaced as a commented-out `ADD` / `DROP
