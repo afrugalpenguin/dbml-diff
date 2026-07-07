@@ -128,6 +128,25 @@ describe('CLI', () => {
     }
   });
 
+  test('--hide-unchanged-pk drops the PK row from MOD tables in dbml output (#64)', () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'dbml-diff-hidepk-'));
+    const a = path.join(dir, 'a.dbml');
+    const b = path.join(dir, 'b.dbml');
+    fs.writeFileSync(a, 'Table t {\n  id int [pk]\n  drop_me varchar(10)\n}\n');
+    fs.writeFileSync(b, 'Table t {\n  id int [pk]\n}\n');
+    try {
+      const on = run(a, b, '--format', 'dbml', '--hide-unchanged-pk');
+      expect(on.status).toBe(1);
+      expect(on.stdout).not.toContain('unchanged columns omitted');
+      expect(on.stdout).toContain('drop_me__REMOVED');
+
+      const off = run(a, b, '--format', 'dbml');
+      expect(off.stdout).toContain('unchanged columns omitted');
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
   test('--migrate emits a T-SQL migration on stdout, counts on stderr', () => {
     const res = run(fixture('v1.dbml'), fixture('v2.dbml'), '--migrate');
     expect(res.status).toBe(1);

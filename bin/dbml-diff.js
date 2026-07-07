@@ -19,6 +19,8 @@ Options:
   --colors                    in dbml format, use headercolor annotations
                               (requires dbdiagram paid tier to render;
                               name prefixes are always emitted regardless)
+  --hide-unchanged-pk         in dbml format, drop the unchanged primary-key
+                              row from modified tables (leaner delta-only view)
   --migrate                   emit a T-SQL migration script (ALTER/CREATE DDL)
                               instead of a diff; DROP and heuristic RENAME
                               statements are commented out. Cannot be combined
@@ -53,7 +55,7 @@ function fail(msg) {
 }
 
 function parseArgs(argv) {
-  const opts = { format: 'text', fullNewTables: false, colors: false, migrate: false, includeNotes: false, output: null, files: [] };
+  const opts = { format: 'text', fullNewTables: false, colors: false, hideUnchangedPk: false, migrate: false, includeNotes: false, output: null, files: [] };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === '-h' || a === '--help') opts.help = true;
@@ -64,6 +66,7 @@ function parseArgs(argv) {
       if (opts.format === undefined) fail(`--format requires a value\n\n${USAGE}`);
     } else if (a === '--full-new-tables') opts.fullNewTables = true;
     else if (a === '--colors') opts.colors = true;
+    else if (a === '--hide-unchanged-pk') opts.hideUnchangedPk = true;
     else if (a === '--migrate') opts.migrate = true;
     else if (a === '--include-notes') opts.includeNotes = true;
     else if (a === '-o' || a === '--output') {
@@ -139,6 +142,7 @@ function main() {
       newLabel: newFile,
       fullNewTables: opts.fullNewTables,
       colors: opts.colors,
+      hideUnchangedPk: opts.hideUnchangedPk,
     });
   } else out = emitText(result);
   if (!out.endsWith('\n')) out += '\n';

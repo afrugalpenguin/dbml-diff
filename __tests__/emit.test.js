@@ -136,6 +136,43 @@ describe('emit dbml summary table (free-tier canvas)', () => {
   });
 });
 
+describe('emitDbml hideUnchangedPk (#64)', () => {
+  // A modified table (drop_me removed) that keeps its PK unchanged.
+  const before = 'Table t {\n  id int [pk]\n  drop_me varchar(10)\n}';
+  const after = 'Table t {\n  id int [pk]\n}';
+  const result = diff(before, after);
+
+  test('by default the MOD table shows the unchanged primary-key row', () => {
+    const out = emitDbml(result, { date: DATE });
+    expect(out).toContain("unchanged columns omitted");
+    expect(out).toMatch(/id int \[pk/);
+    expect(out).toContain('drop_me__REMOVED');
+  });
+
+  test('with hideUnchangedPk the PK orientation row is suppressed', () => {
+    const out = emitDbml(result, { date: DATE, hideUnchangedPk: true });
+    expect(out).not.toContain("unchanged columns omitted");
+    // The MOD table block itself no longer carries the PK stub row...
+    const modBlock = out.slice(out.indexOf('Table "MOD'));
+    expect(modBlock).not.toMatch(/id int \[pk/);
+    // ...but the actual change is still shown.
+    expect(modBlock).toContain('drop_me__REMOVED');
+  });
+
+  test('hideUnchangedPk output still parses cleanly through @dbml/core', () => {
+    const out = emitDbml(result, { date: DATE, hideUnchangedPk: true });
+    expect(() => new Parser().parse(out, 'dbmlv2')).not.toThrow();
+  });
+
+  test('NEW/DEL tables are unaffected by hideUnchangedPk', () => {
+    const b2 = 'Table keep {\n  id int [pk]\n}\nTable gone {\n  id int [pk]\n}';
+    const a2 = 'Table keep {\n  id int [pk]\n}\nTable fresh {\n  id int [pk]\n}';
+    const out = emitDbml(diff(b2, a2), { date: DATE, hideUnchangedPk: true });
+    expect(out).toContain('NEW TABLE');            // added table keeps its PK stub
+    expect(out).toMatch(/Table "DEL · gone"/);     // removed table still emitted in full
+  });
+});
+
 test('a refs-only diff is not reported as no schema changes', () => {
   const before = 'Table Customers {\n  Id INT [pk]\n}\nTable Orders {\n  Id INT [pk]\n  CustomerId INT\n}';
   const after = 'Table Customers {\n  Id INT [pk]\n}\nTable Orders {\n  Id INT [pk]\n  CustomerId INT [ref: > Customers.Id]\n}';
