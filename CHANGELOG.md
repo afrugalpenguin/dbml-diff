@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   The membership change is now surfaced as a commented-out `ADD` / `DROP
   CONSTRAINT ... PRIMARY KEY`, consistent with the destructive-statement safety
   convention. (#69)
+- Column counts are now correctly pluralised: single-column tables read
+  `1 column` instead of `1 columns` in text and dbml output. (#67)
 
 ### Changed
 
