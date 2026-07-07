@@ -202,6 +202,25 @@ test('added table with an un-annotated PK column renders that column NOT NULL', 
   expect(idLine).not.toMatch(/(?<!NOT )\bNULL\b/);
 });
 
+test('PK-only change emits no no-op ALTER COLUMN and never renders the PK as NULL (#69)', () => {
+  const before = 'Table dbo.Contract {\n  Premium decimal(18,2)\n}';
+  const after = 'Table dbo.Contract {\n  Premium decimal(18,2) [pk]\n}';
+  const out = emitMigration(diff(before, after));
+  // T-SQL cannot add PK membership via ALTER COLUMN, so a PK-only change must
+  // not emit a live (uncommented) no-op ALTER COLUMN.
+  const liveAlterCol = out
+    .split('\n')
+    .filter((l) => !l.trim().startsWith('--') && /ALTER COLUMN/i.test(l));
+  expect(liveAlterCol).toEqual([]);
+  // No statement renders the column becoming a PK as NULL.
+  const nullLine = out
+    .split('\n')
+    .find((l) => /Premium/.test(l) && /(?<!NOT )\bNULL\b/.test(l));
+  expect(nullLine).toBeUndefined();
+  // The PK change surfaces as a commented ADD CONSTRAINT for deliberate review.
+  expect(out).toContain('ADD CONSTRAINT [PK_Contract] PRIMARY KEY ([Premium])');
+});
+
 describe('emitMigration (v1 -> v2 fixtures)', () => {
   const result = diff(v1, v2);
   const sql = emitMigration(result, { oldLabel: 'v1.dbml', newLabel: 'v2.dbml', date: DATE });

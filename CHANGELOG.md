@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- A column gaining or losing primary-key membership (with type and nullability
+  otherwise unchanged) is now detected and reported as a changed column
+  (`became PK` / `no longer PK`). (#65)
+- `--migrate`: a PK-only membership change no longer emits a no-op `ALTER COLUMN`
+  that both fails to apply the PK and could render a becoming-PK column as `NULL`.
+  The membership change is now surfaced as a commented-out `ADD` / `DROP
+  CONSTRAINT ... PRIMARY KEY`, consistent with the destructive-statement safety
+  convention. (#69)
+
 ### Changed
 
 - `--format dbml`: the diff summary is now emitted as a `DIFF SUMMARY` table
