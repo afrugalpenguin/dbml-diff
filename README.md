@@ -64,7 +64,7 @@ The counts summary (`added: N, removed: N, modified: N`) always goes to **stderr
 | `__ADDED` column suffix | Column added to a modified table |
 | `__REMOVED` column suffix | Column removed from a modified table |
 | `__RENAMED` column suffix | Rename candidate (heuristic - verify; never merged silently) |
-| `__CHANGED` column suffix | Type or nullability changed (detail in the column `note`) |
+| `__CHANGED` column suffix | Type, nullability or PK membership changed (detail in the column `note`) |
 | `NEW · ` / `MOD · ` / `DEL · ` enum name prefix | Enum added / modified / removed |
 | `[note: 'ADDED']` / `[note: 'REMOVED']` on an enum value | Value added / removed in a modified enum |
 
