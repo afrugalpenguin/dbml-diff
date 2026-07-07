@@ -1,5 +1,5 @@
 /*
-  SCHEMA DIFF (generated 2026-07-03)
+  SCHEMA DIFF (generated 2026-07-06)
   __tests__/fixtures/v1.dbml  ->  __tests__/fixtures/v2.dbml
 
   Table prefixes : NEW · / MOD · / DEL ·
@@ -7,19 +7,11 @@
   MOD tables show only the primary key + changed columns.
 */
 
-Note diff_summary {
-  '''
-  ## Schema diff: __tests__/fixtures/v1.dbml -> __tests__/fixtures/v2.dbml
-  - Tables added: 1
-  - Tables removed: 1
-  - Tables modified: 4
-
-  **Added**: dbo.PlanKind
-
-  **Removed**: dbo.LegacyLog
-
-  **Modified**: dbo.Shipments, dbo.Subscriptions, dbo.SubscriptionLines, dbo.Refunds
-  '''
+Table "DIFF SUMMARY  ·  __tests__/fixtures/v1.dbml -> __tests__/fixtures/v2.dbml" {
+  "Tables added" "1"
+  "Tables removed" "1"
+  "Tables modified" "4"
+  "Groups added" "1"
 }
 
 ////////// MODIFIED TABLES //////////
