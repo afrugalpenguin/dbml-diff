@@ -47,6 +47,8 @@ Options:
                               instead of a diff; DROP and heuristic RENAME
                               statements are commented out. Cannot be combined
                               with --format. Honors -o.
+  --include-notes             treat a changed column note as a column change
+                              (reported as "note changed"); off by default
   -o, --output <file>         write to file instead of stdout
   -h, --help                  usage
   --version                   package version

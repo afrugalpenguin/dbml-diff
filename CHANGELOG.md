@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `--include-notes` flag: treat a changed column `note` as a column change,
+  reported as `note changed` in text, json and dbml output. Off by default -
+  notes are noise in most diffs. The library `diff()` / `diffSchemas()` take a
+  matching `{ includeNotes }` option. (#68)
+
 ### Changed
 
 - Minimum supported Node.js is now `>=22` (was `>=18`); Node 18 and 20 have

@@ -444,3 +444,35 @@ Ref: posts.uid > posts.id`;
     expect(result.refs.removed).toHaveLength(0);
   });
 });
+
+describe('diff with includeNotes (#68)', () => {
+  const before = "Table t {\n  id int [pk]\n  name varchar(50) [note: 'the old note']\n}";
+  const after = "Table t {\n  id int [pk]\n  name varchar(50) [note: 'the new note']\n}";
+
+  test('a note-only change is invisible by default', () => {
+    const result = diff(before, after);
+    expect(result.counts.modified).toBe(0);
+    expect(result.tables.modified).toEqual([]);
+  });
+
+  test('with includeNotes, a note-only change surfaces as a changed column', () => {
+    const result = diff(before, after, { includeNotes: true });
+    expect(result.counts.modified).toBe(1);
+    const changed = result.tables.modified[0].columnsChanged;
+    expect(changed).toHaveLength(1);
+    expect(changed[0].column.name).toBe('name');
+    expect(changed[0].changes).toContain('note changed');
+  });
+
+  test('adding a note where there was none counts as a change under includeNotes', () => {
+    const noNote = 'Table t {\n  id int [pk]\n  name varchar(50)\n}';
+    const withNote = "Table t {\n  id int [pk]\n  name varchar(50) [note: 'now documented']\n}";
+    const result = diff(noNote, withNote, { includeNotes: true });
+    expect(result.tables.modified[0].columnsChanged[0].changes).toContain('note changed');
+  });
+
+  test('an unchanged note is not a change under includeNotes', () => {
+    const same = "Table t {\n  id int [pk]\n  name varchar(50) [note: 'stable']\n}";
+    expect(diff(same, same, { includeNotes: true }).counts.modified).toBe(0);
+  });
+});

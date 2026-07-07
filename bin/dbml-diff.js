@@ -23,6 +23,8 @@ Options:
                               instead of a diff; DROP and heuristic RENAME
                               statements are commented out. Cannot be combined
                               with --format. Honors -o.
+  --include-notes             treat a changed column note as a column change
+                              (reported as "note changed"); off by default
   -o, --output <file>         write to file instead of stdout
   -h, --help                  show this help
   --version                   print package version
@@ -51,7 +53,7 @@ function fail(msg) {
 }
 
 function parseArgs(argv) {
-  const opts = { format: 'text', fullNewTables: false, colors: false, migrate: false, output: null, files: [] };
+  const opts = { format: 'text', fullNewTables: false, colors: false, migrate: false, includeNotes: false, output: null, files: [] };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === '-h' || a === '--help') opts.help = true;
@@ -63,6 +65,7 @@ function parseArgs(argv) {
     } else if (a === '--full-new-tables') opts.fullNewTables = true;
     else if (a === '--colors') opts.colors = true;
     else if (a === '--migrate') opts.migrate = true;
+    else if (a === '--include-notes') opts.includeNotes = true;
     else if (a === '-o' || a === '--output') {
       opts.output = argv[++i];
       if (opts.output === undefined) fail(`${a} requires a value\n\n${USAGE}`);
@@ -124,7 +127,7 @@ function main() {
   const [oldFile, newFile] = opts.files;
   const oldSchema = parseOrFail(oldFile, readFileOrFail(oldFile));
   const newSchema = parseOrFail(newFile, readFileOrFail(newFile));
-  const result = diffSchemas(oldSchema, newSchema);
+  const result = diffSchemas(oldSchema, newSchema, { includeNotes: opts.includeNotes });
 
   let out;
   if (opts.migrate) {
