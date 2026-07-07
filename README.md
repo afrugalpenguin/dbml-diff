@@ -43,6 +43,8 @@ Options:
                               removed) instead of relying on name prefixes
                               alone. Requires dbdiagram paid tier to render;
                               name prefixes are always emitted regardless.
+  --hide-unchanged-pk         in dbml format, drop the unchanged primary-key
+                              row from modified tables (leaner delta-only view)
   --migrate                   emit a T-SQL migration script (ALTER/CREATE DDL)
                               instead of a diff; DROP and heuristic RENAME
                               statements are commented out. Cannot be combined
@@ -70,7 +72,7 @@ The counts summary (`added: N, removed: N, modified: N`) always goes to **stderr
 | `NEW · ` / `MOD · ` / `DEL · ` enum name prefix | Enum added / modified / removed |
 | `[note: 'ADDED']` / `[note: 'REMOVED']` on an enum value | Value added / removed in a modified enum |
 
-Modified tables show only their primary key (annotated `unchanged columns omitted`) plus the changed columns. Added tables are stubbed to the PK with a `NEW TABLE - N columns` note by default (`--full-new-tables` emits everything); removed tables are emitted in full. Enum changes are emitted as `Enum` blocks under the same `NEW · / MOD · / DEL ·` prefixes; in a modified enum the full new value list is shown with `ADDED` notes on new values and the dropped values re-listed with `REMOVED` notes. A `DIFF SUMMARY` table at the top lists the counts: one column per metric, with the label as the column name and the count as the column type, so the numbers are visible on the canvas at a glance. It's a real table (not a standalone `Note` block) because dbdiagram renders standalone notes as Sticky Notes only on paid tiers, whereas a table always renders on the free tier. The three table counts (added / removed / modified) always appear; enum, ref, and TableGroup rows appear only for categories that changed.
+Modified tables show only their primary key (annotated `unchanged columns omitted`) plus the changed columns; `--hide-unchanged-pk` drops that PK row for a leaner delta-only view (the block stays valid because a modified table always has at least one changed column). Added tables are stubbed to the PK with a `NEW TABLE - N columns` note by default (`--full-new-tables` emits everything); removed tables are emitted in full. Enum changes are emitted as `Enum` blocks under the same `NEW · / MOD · / DEL ·` prefixes; in a modified enum the full new value list is shown with `ADDED` notes on new values and the dropped values re-listed with `REMOVED` notes. A `DIFF SUMMARY` table at the top lists the counts: one column per metric, with the label as the column name and the count as the column type, so the numbers are visible on the canvas at a glance. It's a real table (not a standalone `Note` block) because dbdiagram renders standalone notes as Sticky Notes only on paid tiers, whereas a table always renders on the free tier. The three table counts (added / removed / modified) always appear; enum, ref, and TableGroup rows appear only for categories that changed.
 
 Relationship (`Ref:`) changes are counted in the `DIFF SUMMARY` table (added, removed, `retargeted` when an FK side keeps its columns but points at a new parent, and `unresolved` for a change that cannot be mapped to a single retarget). The per-ref and per-group detail - which tables changed and how - lives in `--format text` and `--format json`, not in the diagram.
 

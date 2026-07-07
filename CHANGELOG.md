@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   reported as `note changed` in text, json and dbml output. Off by default -
   notes are noise in most diffs. The library `diff()` / `diffSchemas()` take a
   matching `{ includeNotes }` option. (#68)
+- `--hide-unchanged-pk` flag (and `emitDbml` `{ hideUnchangedPk }` option): in
+  `--format dbml`, drop the unchanged primary-key orientation row from modified
+  tables for a leaner delta-only view. Default keeps the row (valid, orientable
+  DBML). NEW/DEL tables are unaffected. (#64)
 
 ### Changed
 
