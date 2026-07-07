@@ -108,6 +108,26 @@ describe('CLI', () => {
     }
   });
 
+  test('--include-notes: a note-only change is invisible by default, reported with the flag (#68)', () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'dbml-diff-test-'));
+    const a = path.join(dir, 'a.dbml');
+    const b = path.join(dir, 'b.dbml');
+    fs.writeFileSync(a, "Table t {\n  id int [pk]\n  name varchar(50) [note: 'old']\n}\n");
+    fs.writeFileSync(b, "Table t {\n  id int [pk]\n  name varchar(50) [note: 'new']\n}\n");
+    try {
+      const off = run(a, b);
+      expect(off.status).toBe(0);
+      expect(off.stdout).toContain('No differences found.');
+
+      const on = run(a, b, '--include-notes');
+      expect(on.status).toBe(1);
+      expect(on.stderr).toContain('added: 0, removed: 0, modified: 1');
+      expect(on.stdout).toContain('note changed');
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
   test('--migrate emits a T-SQL migration on stdout, counts on stderr', () => {
     const res = run(fixture('v1.dbml'), fixture('v2.dbml'), '--migrate');
     expect(res.status).toBe(1);
