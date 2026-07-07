@@ -79,6 +79,32 @@ test('emitMigration is exported from the package entry point', () => {
   expect(typeof require('../lib').emitMigration).toBe('function');
 });
 
+describe('column-count pluralisation (#67)', () => {
+  const before = 'Table Keep { Id INT [pk] }\nTable Gone { Id INT [pk] }';
+  const after = 'Table Keep { Id INT [pk] }\nTable Solo { Id INT [pk] }';
+  const result = diff(before, after); // adds single-column Solo, removes single-column Gone
+
+  test('single-column added/removed tables read "1 column" in text output', () => {
+    const out = emitText(result);
+    expect(out).toContain('+ Solo (1 column)');
+    expect(out).toContain('- Gone (1 column)');
+    expect(out).not.toContain('1 columns');
+  });
+
+  test('single-column added table reads "NEW TABLE - 1 column" in dbml output', () => {
+    const out = emitDbml(result, { date: DATE });
+    expect(out).toContain('NEW TABLE - 1 column');
+    expect(out).not.toContain('1 columns');
+  });
+
+  test('multi-column tables keep the plural "N columns"', () => {
+    const b = 'Table Keep { Id INT [pk] }';
+    const a = 'Table Keep { Id INT [pk] }\nTable Wide { Id INT [pk]\n  Name VARCHAR(50) }';
+    const out = emitText(diff(b, a));
+    expect(out).toContain('+ Wide (2 columns)');
+  });
+});
+
 describe('emit dbml summary table (free-tier canvas)', () => {
   const result = diff(v1, v2); // counts: added 1, removed 1, modified 4
 
