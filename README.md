@@ -183,7 +183,7 @@ Useful for CI gates ("fail the build if the schema changed"):
 
 ## Roadmap
 
-**[Visual public roadmap](https://afrugalpenguin.github.io/dbml-diff/roadmap.html)** - what shipped, what's in progress, what's next. Generated from the issue tracker: issues labelled `roadmap` become cards, `status:` labels set the column, closed issues land in Launched.
+**[Visual public roadmap](https://afrugalpenguin.github.io/dbml-diff/roadmap.html)** - what shipped, what's in progress, what's next. Generated from the issue tracker: issues labelled `roadmap` become cards, `status:` labels set the column, closed issues land in Done.
 
 - `--migrate` T-SQL migration script (`CREATE`/`ALTER`, foreign-key constraints,
   commented `DROP`/rename) - the ALTER-generation ask in upstream

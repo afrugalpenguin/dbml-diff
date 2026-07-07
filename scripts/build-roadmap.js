@@ -4,7 +4,7 @@
 // GitHub issues labelled `roadmap`.
 //
 // Column rules:
-//   closed issue                 -> Launched
+//   closed issue                 -> Done
 //   label "status: working-on"   -> Working on
 //   label "status: upcoming"     -> Upcoming
 //   otherwise                    -> Backlog
@@ -184,7 +184,7 @@ ${cols[key].map(card).join('\n')}
 ${section('backlog', 'Backlog')}
 ${section('upcoming', 'Upcoming')}
 ${section('working', 'Working on')}
-${section('launched', 'Launched')}
+${section('launched', 'Done')}
   </div>
 </div>
 </body>
