@@ -235,4 +235,19 @@ describe('CLI', () => {
     expect(res.status).toBe(0);
     expect(res.stdout.trim()).toBe(require('../package.json').version);
   });
+
+  test('warns when a dbml-only flag is used with an incompatible format (#87)', () => {
+    const res = run(fixture('v1.dbml'), fixture('v2.dbml'), '--format', 'json', '--colors');
+    // The command still succeeds and produces JSON...
+    expect(res.status).toBe(1);
+    expect(() => JSON.parse(res.stdout)).not.toThrow();
+    // ...but a warning tells the user the flag was ignored.
+    expect(res.stderr).toContain('--colors');
+    expect(res.stderr).toContain('apply only to --format dbml');
+  });
+
+  test('does not warn when a dbml-only flag is used with --format dbml', () => {
+    const res = run(fixture('v1.dbml'), fixture('v2.dbml'), '--format', 'dbml', '--colors');
+    expect(res.stderr).not.toContain('apply only to --format dbml');
+  });
 });

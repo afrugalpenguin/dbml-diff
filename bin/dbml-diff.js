@@ -126,6 +126,17 @@ function main() {
   if (!opts.migrate && !['text', 'json', 'dbml'].includes(opts.format)) {
     fail(`dbml-diff: invalid --format "${opts.format}" (expected text, json, or dbml)`);
   }
+  // --full-new-tables, --colors, and --hide-unchanged-pk only affect dbml output.
+  // Warn (do not fail) when they are set with an incompatible format so a
+  // scripting mistake is visible instead of silently ignored.
+  const dbmlOnly = [];
+  if (opts.fullNewTables) dbmlOnly.push('--full-new-tables');
+  if (opts.colors) dbmlOnly.push('--colors');
+  if (opts.hideUnchangedPk) dbmlOnly.push('--hide-unchanged-pk');
+  if (dbmlOnly.length && (opts.migrate || opts.format !== 'dbml')) {
+    const ctx = opts.migrate ? '--migrate' : `--format ${opts.format}`;
+    process.stderr.write(`dbml-diff: ${dbmlOnly.join(', ')} apply only to --format dbml; ignored with ${ctx}\n`);
+  }
 
   const [oldFile, newFile] = opts.files;
   const oldSchema = parseOrFail(oldFile, readFileOrFail(oldFile));
