@@ -445,6 +445,29 @@ Ref: posts.uid > posts.id`;
   });
 });
 
+describe('composite ref column order (#90)', () => {
+  const tables = 'Table a {\n  x int\n  y int\n}\nTable b {\n  x int [pk]\n  y int\n}\n';
+
+  test('a consistent column-order flip on both endpoints is not a change', () => {
+    const before = `${tables}Ref: a.(x, y) > b.(x, y)`;
+    const after = `${tables}Ref: a.(y, x) > b.(y, x)`;
+    const r = diff(before, after);
+    // Same pairing (x->x, y->y), just listed in a different order: no change.
+    expect(r.refs.added).toHaveLength(0);
+    expect(r.refs.removed).toHaveLength(0);
+    expect(r.refs.retargeted).toHaveLength(0);
+  });
+
+  test('re-pairing the columns (one side reordered) is still reported as a change', () => {
+    const before = `${tables}Ref: a.(x, y) > b.(x, y)`;
+    const after = `${tables}Ref: a.(y, x) > b.(x, y)`;
+    const r = diff(before, after);
+    // Pairing changed (y->x, x->y): a genuinely different constraint.
+    const changed = r.refs.added.length + r.refs.removed.length + r.refs.retargeted.length;
+    expect(changed).toBeGreaterThan(0);
+  });
+});
+
 describe('diff with includeNotes (#68)', () => {
   const before = "Table t {\n  id int [pk]\n  name varchar(50) [note: 'the old note']\n}";
   const after = "Table t {\n  id int [pk]\n  name varchar(50) [note: 'the new note']\n}";
