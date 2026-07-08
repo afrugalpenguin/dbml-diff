@@ -284,6 +284,33 @@ test('PK-only change emits no no-op ALTER COLUMN and never renders the PK as NUL
   expect(out).toContain('ADD CONSTRAINT [PK_Contract] PRIMARY KEY ([Premium])');
 });
 
+test('a note-only column change under --include-notes emits no ALTER COLUMN (#78)', () => {
+  const before = "Table t {\n  Id int [pk]\n  name varchar [note: 'old']\n}";
+  const after = "Table t {\n  Id int [pk]\n  name varchar [note: 'new']\n}";
+  const out = emitMigration(diff(before, after, { includeNotes: true }));
+  // A note is not a DDL-relevant attribute, so a note-only change must not
+  // emit a (no-op) ALTER COLUMN.
+  const liveAlterCol = out
+    .split('\n')
+    .filter((l) => !l.trim().startsWith('--') && /ALTER COLUMN/i.test(l));
+  expect(liveAlterCol).toEqual([]);
+});
+
+test('a column losing PK membership emits a commented DROP CONSTRAINT and no live ALTER COLUMN (#82)', () => {
+  const before = 'Table dbo.Contract {\n  Premium decimal(18,2) [pk]\n}';
+  const after = 'Table dbo.Contract {\n  Premium decimal(18,2)\n}';
+  const out = emitMigration(diff(before, after));
+  // Losing PK membership is a constraint drop, emitted commented for review.
+  const dropLine = out.split('\n').find((l) => l.includes('DROP CONSTRAINT'));
+  expect(dropLine).toBeDefined();
+  expect(dropLine.trim().startsWith('--')).toBe(true);
+  expect(dropLine).toContain('[PK_Contract]');
+  // No live ALTER COLUMN for a PK-only flip, and no uncommented DROP anywhere.
+  const live = out.split('\n').filter((l) => !l.trim().startsWith('--'));
+  expect(live.filter((l) => /ALTER COLUMN/i.test(l))).toEqual([]);
+  expect(live.filter((l) => /\bDROP\b/i.test(l))).toEqual([]);
+});
+
 describe('emitMigration (v1 -> v2 fixtures)', () => {
   const result = diff(v1, v2);
   const sql = emitMigration(result, { oldLabel: 'v1.dbml', newLabel: 'v2.dbml', date: DATE });
