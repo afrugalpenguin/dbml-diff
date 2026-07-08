@@ -173,6 +173,14 @@ describe('emitDbml hideUnchangedPk (#64)', () => {
   });
 });
 
+test('emitDbml escapes newlines in notes so output stays valid DBML (#80)', () => {
+  const before = 'Table keep {\n  id int [pk]\n}';
+  // An added column whose note spans multiple lines (a real newline in the value).
+  const after = "Table keep {\n  id int [pk]\n}\nTable fresh {\n  id int [pk]\n  descr varchar [note: '''line one\nline two''']\n}";
+  const out = emitDbml(diff(before, after), { date: DATE, fullNewTables: true });
+  expect(() => new Parser().parse(out, 'dbmlv2')).not.toThrow();
+});
+
 test('a refs-only diff is not reported as no schema changes', () => {
   const before = 'Table Customers {\n  Id INT [pk]\n}\nTable Orders {\n  Id INT [pk]\n  CustomerId INT\n}';
   const after = 'Table Customers {\n  Id INT [pk]\n}\nTable Orders {\n  Id INT [pk]\n  CustomerId INT [ref: > Customers.Id]\n}';
