@@ -284,6 +284,18 @@ test('PK-only change emits no no-op ALTER COLUMN and never renders the PK as NUL
   expect(out).toContain('ADD CONSTRAINT [PK_Contract] PRIMARY KEY ([Premium])');
 });
 
+test('SECURITY: a ] in an identifier is doubled so it cannot break out of the T-SQL brackets (#79)', () => {
+  const before = 'Table t {\n  Id int [pk]\n}';
+  const after = 'Table t {\n  Id int [pk]\n  "x]y" int\n}';
+  const out = emitMigration(diff(before, after));
+  const line = out.split('\n').find((l) => l.includes('ADD') && l.includes('x'));
+  expect(line).toBeDefined();
+  // A ] inside a bracket-quoted T-SQL identifier must be doubled; otherwise it
+  // terminates the identifier early and everything after it becomes live SQL.
+  expect(line).toContain('[x]]y]');
+  expect(line).not.toContain('[x]y]');
+});
+
 describe('emitMigration (v1 -> v2 fixtures)', () => {
   const result = diff(v1, v2);
   const sql = emitMigration(result, { oldLabel: 'v1.dbml', newLabel: 'v2.dbml', date: DATE });
