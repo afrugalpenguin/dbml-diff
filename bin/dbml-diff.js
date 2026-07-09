@@ -181,7 +181,11 @@ function main() {
     summary += ` | groups added: ${groups.added.length}, removed: ${groups.removed.length}, modified: ${groups.modified.length}`;
   }
   process.stderr.write(`${summary}\n`);
-  process.exit(cc.total ? 1 : 0);
+  // Set the exit code and return rather than calling process.exit(): a large
+  // diff written to a pipe (async stdout on POSIX) is still buffered here, and
+  // process.exit() would drop everything past the ~64KB OS pipe buffer. Letting
+  // main() return lets Node drain stdout before exiting with this code.
+  process.exitCode = cc.total ? 1 : 0;
 }
 
 main();
