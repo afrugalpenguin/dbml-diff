@@ -468,6 +468,42 @@ describe('composite ref column order (#90)', () => {
   });
 });
 
+describe('non-directional ref orientation fallback (#84)', () => {
+  // One-to-one (`-`) and many-to-many (`<>`) refs have no `*`/`1` sides, so ref
+  // keying falls back to a canonical ordering of the two endpoints. That branch
+  // is never hit by the directional `>` refs the other tests use.
+  const tables = 'Table users { id int [pk] }\n' +
+    'Table members { id int [pk] }\n' +
+    'Table profiles { id int [pk]\n  uid int }\n';
+
+  test('an identical one-to-one ref produces no ref change', () => {
+    const s = `${tables}Ref: profiles.uid - users.id`;
+    const r = diff(s, s);
+    expect(r.refs.added).toHaveLength(0);
+    expect(r.refs.removed).toHaveLength(0);
+    expect(r.refs.retargeted).toHaveLength(0);
+    expect(r.refs.unresolved).toHaveLength(0);
+  });
+
+  test('retargeting a one-to-one ref is reported as a change', () => {
+    const before = `${tables}Ref: profiles.uid - users.id`;
+    const after = `${tables}Ref: profiles.uid - members.id`;
+    const r = diff(before, after);
+    const changed = r.refs.added.length + r.refs.removed.length +
+      r.refs.retargeted.length + r.refs.unresolved.length;
+    expect(changed).toBeGreaterThan(0);
+  });
+
+  test('an identical many-to-many ref produces no ref change', () => {
+    const s = `${tables}Ref: profiles.uid <> users.id`;
+    const r = diff(s, s);
+    expect(r.refs.added).toHaveLength(0);
+    expect(r.refs.removed).toHaveLength(0);
+    expect(r.refs.retargeted).toHaveLength(0);
+    expect(r.refs.unresolved).toHaveLength(0);
+  });
+});
+
 describe('diff with includeNotes (#68)', () => {
   const before = "Table t {\n  id int [pk]\n  name varchar(50) [note: 'the old note']\n}";
   const after = "Table t {\n  id int [pk]\n  name varchar(50) [note: 'the new note']\n}";
