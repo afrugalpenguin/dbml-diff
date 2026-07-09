@@ -1,7 +1,11 @@
 name: test
 
 on:
+  # Scope push to main so a branch with an open PR isn't tested twice (once for
+  # push, once for pull_request). Branch commits are covered via pull_request;
+  # merges to main are covered here.
   push:
+    branches: [main]
   pull_request:
 
 jobs:
