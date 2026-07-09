@@ -303,4 +303,41 @@ describe('CLI', () => {
     const on = run(fixture('v1.dbml'), fixture('v2.dbml'), '--format', 'dbml', '--colors');
     expect(on.stdout).toContain('headercolor');
   });
+
+  test('large diff is not truncated when written to a piped stdout (#89)', () => {
+    // process.exit() after a stdout write drops buffered data on POSIX when
+    // stdout is a pipe (async writes) and the output exceeds the ~64KB OS pipe
+    // buffer. The captured spawnSync stdout is a pipe, so this reproduces it on
+    // Linux/macOS (on Windows pipe writes are synchronous, so it always passes).
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'dbml-diff-trunc-'));
+    const a = path.join(dir, 'a.dbml');
+    const b = path.join(dir, 'b.dbml');
+    const ref = path.join(dir, 'ref.txt');
+    try {
+      // ~5000 modified tables -> a few hundred KB of text, far past 64KB and
+      // under the 1MB spawnSync maxBuffer default.
+      let src = '';
+      let dst = '';
+      for (let i = 0; i < 5000; i++) {
+        src += `Table t${i} {\n  id int [pk]\n  c1 varchar(50)\n}\n`;
+        dst += `Table t${i} {\n  id int [pk]\n  c1 bigint\n  c2 varchar(99)\n}\n`;
+      }
+      fs.writeFileSync(a, src);
+      fs.writeFileSync(b, dst);
+
+      // Reference: -o writes via writeFileSync (synchronous, never truncated).
+      const toFile = run(a, b, '-o', ref);
+      expect(toFile.status).toBe(1);
+      const reference = fs.readFileSync(ref, 'utf8');
+      expect(reference.length).toBeGreaterThan(100_000); // guard: genuinely large
+
+      // Piped path: spawnSync captures the child's stdout over a pipe.
+      const piped = run(a, b);
+      expect(piped.status).toBe(1);
+      expect(piped.stdout).toBe(reference);
+      expect(piped.stdout.endsWith(reference.slice(-80))).toBe(true);
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  });
 });
