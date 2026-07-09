@@ -3,7 +3,7 @@
 
 const fs = require('fs');
 const { parseSchema } = require('../lib/parse');
-const { diffSchemas } = require('../lib/diff');
+const { diffSchemas, changeCounts } = require('../lib/diff');
 const { emitText, emitJson, emitDbml, emitMigration } = require('../lib/emit');
 const pkg = require('../package.json');
 
@@ -169,23 +169,19 @@ function main() {
   }
 
   const { counts, enums, refs, groups } = result;
-  const enumChanges = enums.added.length + enums.removed.length + enums.modified.length;
-  const refChanges = refs.added.length + refs.removed.length +
-    refs.retargeted.length + refs.unresolved.length;
-  const groupChanges = groups.added.length + groups.removed.length + groups.modified.length;
+  const cc = changeCounts(result);
   let summary = `added: ${counts.added}, removed: ${counts.removed}, modified: ${counts.modified}`;
-  if (enumChanges) {
+  if (cc.enums) {
     summary += ` | enums added: ${enums.added.length}, removed: ${enums.removed.length}, modified: ${enums.modified.length}`;
   }
-  if (refChanges) {
+  if (cc.refs) {
     summary += ` | refs added: ${refs.added.length}, removed: ${refs.removed.length}, retargeted: ${refs.retargeted.length}, unresolved: ${refs.unresolved.length}`;
   }
-  if (groupChanges) {
+  if (cc.groups) {
     summary += ` | groups added: ${groups.added.length}, removed: ${groups.removed.length}, modified: ${groups.modified.length}`;
   }
   process.stderr.write(`${summary}\n`);
-  process.exit(counts.added + counts.removed + counts.modified +
-    enumChanges + refChanges + groupChanges ? 1 : 0);
+  process.exit(cc.total ? 1 : 0);
 }
 
 main();
