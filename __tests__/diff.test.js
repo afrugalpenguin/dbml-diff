@@ -1,6 +1,39 @@
 'use strict';
 
 const { diff } = require('../lib');
+const { changeCounts } = require('../lib/diff');
+
+describe('changeCounts (#81)', () => {
+  test('identical schemas count zero across every category', () => {
+    const cc = changeCounts(diff('Table t { id int [pk] }', 'Table t { id int [pk] }'));
+    expect(cc).toEqual({ tables: 0, enums: 0, refs: 0, groups: 0, total: 0 });
+  });
+
+  test('sums each category and the grand total', () => {
+    const before = 'Table keep { id int [pk] }\n' +
+      'Table gone { id int [pk] }\n' +
+      'Enum e_gone { a }\n';
+    const after = 'Table keep { id int [pk]\n  name varchar(50) }\n' + // modified: 1
+      'Table fresh { id int [pk] }\n' +                                // added: 1
+      'Enum e_new { a }\n' +                                           // enum added: 1
+      'TableGroup g { keep\n  fresh }\n';                              // group added: 1
+    const cc = changeCounts(diff(before, after));
+    // tables: 1 added (fresh) + 1 removed (gone) + 1 modified (keep) = 3
+    expect(cc.tables).toBe(3);
+    // enums: 1 added (e_new) + 1 removed (e_gone) = 2
+    expect(cc.enums).toBe(2);
+    expect(cc.groups).toBe(1);
+    expect(cc.total).toBe(cc.tables + cc.enums + cc.refs + cc.groups);
+    expect(cc.total).toBe(6);
+  });
+
+  test('counts ref changes across all four ref buckets', () => {
+    const tables = 'Table a { id int [pk] }\nTable b { id int [pk]\n  aid int }\n';
+    const cc = changeCounts(diff(tables, `${tables}Ref: b.aid > a.id`));
+    expect(cc.refs).toBe(1);
+    expect(cc.total).toBe(1);
+  });
+});
 
 describe('diff', () => {
   test('detects an added table', () => {
