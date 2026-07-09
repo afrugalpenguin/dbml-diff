@@ -30,8 +30,10 @@ jobs:
             echo "Tag v$TAG_VERSION does not match package.json version $PKG_VERSION" >&2
             exit 1
           fi
-      # Trusted publishing (OIDC) needs a recent npm; no token required.
-      - run: npm install -g npm@latest
+      # Use Node 24's bundled npm (11.x): it supports OIDC trusted publishing
+      # (no token required) and provenance. Do NOT self-upgrade with
+      # `npm install -g npm@latest` - that global install drops the bundled
+      # `sigstore` module and breaks `npm publish --provenance`.
       - run: npm ci
       - run: npm test
       - run: npm publish --provenance --access public
