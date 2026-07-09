@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-07-09
+
+### Added
+
+- `dbml-diff` now warns on stderr when a dbml-only flag (`--full-new-tables`, `--colors`, `--hide-unchanged-pk`) is passed with an incompatible `--format`, or with `--migrate`, instead of silently ignoring it. The command still succeeds and produces its output. (#87)
+
+### Fixed
+
+- Security: `--migrate` now doubles a `]` inside a bracket-quoted T-SQL identifier (`]]`), so a crafted quoted column or table name can no longer terminate the identifier early and inject live SQL into the generated migration script. (#79)
+- `--migrate`: a note-only column change (surfaced under `--include-notes`) no longer emits a spurious no-op `ALTER COLUMN`. (#78)
+- dbml output: backslashes and newlines in a column note are now escaped, so emitted DBML with such notes stays valid and re-parses through `@dbml/core` instead of being rejected. (#80)
+- Parsing: an indented `DiagramView` block is now brace-matched and no longer swallows the following `Table`, which previously showed up as a spurious removed + added table. (#88)
+- Composite refs are keyed by their column pairing rather than positional order, so a consistent column-order flip on both endpoints (for example `(x, y)` listed as `(y, x)`) is no longer reported as a change; a genuine re-pairing still is. (#90)
+- CLI: a large diff written to a pipe on Linux/macOS is no longer truncated at the ~64KB OS pipe buffer; the process now flushes stdout before exiting. Writing to a file with `-o` was never affected. (#89)
+
 ## [0.6.0] - 2026-07-07
 
 ### Added
