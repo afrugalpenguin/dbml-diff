@@ -292,6 +292,18 @@ test('PK-only change emits no no-op ALTER COLUMN and never renders the PK as NUL
   expect(out).toContain('ADD CONSTRAINT [PK_Contract] PRIMARY KEY ([Premium])');
 });
 
+test('an added table with a composite PK emits a multi-column PRIMARY KEY constraint (#85)', () => {
+  const before = 'Table keep {\n  Id INT [pk]\n}';
+  const after = `${before}\nTable P {\n  A INT\n  B INT\n  Indexes { (A, B) [pk] }\n}`;
+  const out = emitMigration(diff(before, after));
+  expect(out).toContain('CREATE TABLE [P] (');
+  // Both PK columns are listed in the constraint, in declaration order.
+  expect(out).toContain('CONSTRAINT [PK_P] PRIMARY KEY ([A], [B])');
+  // A PK column is always NOT NULL regardless of its DBML nullability flag.
+  expect(out).toContain('[A] INT NOT NULL');
+  expect(out).toContain('[B] INT NOT NULL');
+});
+
 test('a note-only column change under --include-notes emits no ALTER COLUMN (#78)', () => {
   const before = "Table t {\n  Id int [pk]\n  name varchar [note: 'old']\n}";
   const after = "Table t {\n  Id int [pk]\n  name varchar [note: 'new']\n}";
@@ -434,6 +446,14 @@ Enum status {
   shipped
 }`,
   );
+  const removed = () => diff(
+    `Table t { id int [pk] }
+Enum status {
+  a
+  b
+}`,
+    `Table t { id int [pk] }`,
+  );
 
   test('emitText reports an enum-only change instead of "no differences"', () => {
     const out = emitText(added());
@@ -463,8 +483,22 @@ Enum status {
     expect(out).toContain("cancelled [note: 'REMOVED']");
   });
 
+  test('emitText reports a removed enum with the DEL section (#83)', () => {
+    const out = emitText(removed());
+    expect(out).not.toBe('No differences found.');
+    expect(out).toContain('Removed enums (1):');
+    expect(out).toContain('- status (a, b)');
+  });
+
+  test('emitDbml renders a removed enum with the DEL prefix and count row (#83)', () => {
+    const out = emitDbml(removed(), { date: DATE });
+    expect(out).toContain('Enum "DEL · status"');
+    expect(out).toContain("a [note: 'ENUM REMOVED']");
+    expect(out).toContain('"Enums removed" "1"');
+  });
+
   test('emitDbml enum output parses cleanly back through @dbml/core', () => {
-    for (const r of [added(), modified()]) {
+    for (const r of [added(), modified(), removed()]) {
       const out = emitDbml(r, { date: DATE });
       expect(() => new Parser().parse(out, 'dbmlv2')).not.toThrow();
     }

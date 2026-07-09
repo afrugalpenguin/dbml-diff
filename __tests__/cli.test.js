@@ -250,4 +250,57 @@ describe('CLI', () => {
     const res = run(fixture('v1.dbml'), fixture('v2.dbml'), '--format', 'dbml', '--colors');
     expect(res.stderr).not.toContain('apply only to --format dbml');
   });
+
+  describe('arg-validation guards (#86)', () => {
+    test('one input file: exit 2 naming the wrong count', () => {
+      const res = run(fixture('v1.dbml'));
+      expect(res.status).toBe(2);
+      expect(res.stderr).toContain('expected exactly two input files, got 1');
+    });
+
+    test('three input files: exit 2 naming the wrong count', () => {
+      const res = run(fixture('v1.dbml'), fixture('v2.dbml'), fixture('v1.dbml'));
+      expect(res.status).toBe(2);
+      expect(res.stderr).toContain('expected exactly two input files, got 3');
+    });
+
+    test('--format as the last arg with no value: exit 2', () => {
+      const res = run(fixture('v1.dbml'), fixture('v2.dbml'), '--format');
+      expect(res.status).toBe(2);
+      expect(res.stderr).toContain('--format requires a value');
+    });
+
+    test('-o as the last arg with no value: exit 2', () => {
+      const res = run(fixture('v1.dbml'), fixture('v2.dbml'), '-o');
+      expect(res.status).toBe(2);
+      expect(res.stderr).toContain('-o requires a value');
+    });
+
+    test('unknown option: exit 2 naming the flag', () => {
+      const res = run(fixture('v1.dbml'), fixture('v2.dbml'), '--bogus');
+      expect(res.status).toBe(2);
+      expect(res.stderr).toContain('Unknown option: --bogus');
+    });
+  });
+
+  test('--full-new-tables reaches emitDbml: added table lists all columns (#91)', () => {
+    const stub = run(fixture('v1.dbml'), fixture('v2.dbml'), '--format', 'dbml');
+    // Default: the added table is stubbed to its PK plus a column-count note.
+    expect(stub.stdout).toContain('NEW TABLE - 3 columns');
+    expect(stub.stdout).not.toContain('Title');
+
+    const full = run(fixture('v1.dbml'), fixture('v2.dbml'), '--format', 'dbml', '--full-new-tables');
+    // With the flag, every column of dbo.PlanKind is emitted.
+    expect(full.stdout).toContain('Title');
+    expect(full.stdout).toContain('Sku');
+    expect(full.stdout).not.toContain('NEW TABLE - 3 columns');
+  });
+
+  test('--colors reaches emitDbml: headercolor annotations are emitted (#91)', () => {
+    const off = run(fixture('v1.dbml'), fixture('v2.dbml'), '--format', 'dbml');
+    expect(off.stdout).not.toContain('headercolor');
+
+    const on = run(fixture('v1.dbml'), fixture('v2.dbml'), '--format', 'dbml', '--colors');
+    expect(on.stdout).toContain('headercolor');
+  });
 });
