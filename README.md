@@ -185,6 +185,26 @@ Useful for CI gates ("fail the build if the schema changed"):
 - Primary keys are detected from inline `[pk]` attributes **and** from `Indexes { Col [pk] }` blocks.
 - Schema-qualified table names (e.g. `dbo.Shipments`) are preserved as-is.
 
+## Stability
+
+`dbml-diff` follows [Semantic Versioning](https://semver.org/). From `1.0.0` onward, the surface below is the public API: a breaking change to any of it only lands in a new major version.
+
+**Covered by semver (breaking changes bump the major):**
+
+- The CLI flags and their meaning: `--format <text|json|dbml>`, `--migrate`, `--include-notes`, `--hide-unchanged-pk`, `--full-new-tables`, `--colors`, `-o/--output`, `--version`, `-h/--help`.
+- The [exit codes](#exit-codes): `0` identical, `1` differences found, `2` error.
+- The stdout/stderr split: diff or migration output goes to stdout; the counts summary and warnings go to stderr.
+- The programmatic API: the exported `diff()` / `diffSchemas()` return shape documented under [Programmatic API](#programmatic-api), and the signatures of `emitText()`, `emitJson()`, `emitDbml()`, and `emitMigration()`.
+
+**Not covered (may change in a minor or patch):**
+
+- The exact wording and layout of `--format text` output. It is meant to be read by a human, not parsed; scripts should use `--format json`.
+- The layout of the annotated `--format dbml` document: table stubbing, the `DIFF SUMMARY` table, column annotations, and note text. These render a diagram and are tuned for readability, not for machine consumption.
+- The generated `--migrate` T-SQL: statement ordering, comments, and synthesized constraint names. `--migrate` is T-SQL-only and its output is a starting point for review, not a frozen contract.
+- Any behavior reached only through an undocumented export or internal module.
+
+`@dbml/core` is a runtime dependency; parse behavior it defines (which DBML constructs are accepted, how they are normalized) can shift when that dependency is upgraded.
+
 ## Roadmap
 
 **[Visual public roadmap](https://afrugalpenguin.github.io/dbml-diff/roadmap.html)** - what shipped, what's in progress, what's next. Generated from the issue tracker: issues labelled `roadmap` become cards, `status:` labels set the column, closed issues land in Done.
