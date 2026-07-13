@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-07-13
+
+First stable release. The public API is now covered by Semantic Versioning: the CLI flags, exit codes, the stdout/stderr split, and the programmatic `diff()` / `emit*()` surface will not change incompatibly without a major version bump. See the stability contract in `docs/stability.md` for exactly what is and is not covered.
+
+### Changed
+
+- `@dbml/core` is pinned to an exact version, so DBML parsing is reproducible across installs of a given `dbml-diff` release and changes only when a new release deliberately upgrades it. (#113)
+- Documentation reorganised into a short pick-up README with full reference (CLI, visual diff, migration, API, stability) under `docs/`. (#110)
+
 ## [0.7.0] - 2026-07-09
 
 ### Added
