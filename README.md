@@ -13,13 +13,13 @@ npx dbml-diff old.dbml new.dbml                             # readable text summ
 npx dbml-diff old.dbml new.dbml --format dbml -o diff.dbml  # visual diff, paste into dbdiagram.io
 ```
 
-The visual diff shows *only what changed* - added, removed, and modified tables, with per-column annotations:
-
-![A rendered schema diff: tables prefixed NEW/MOD/DEL, changed columns suffixed and annotated](docs/demo-diff.svg)
-
 ## Why
 
-If you keep your database schema as DBML in version control, `git diff` between two versions is line-noise: attribute reordering, whitespace, and hundreds of unchanged lines drown the handful of real changes. dbdiagram.io has no built-in version compare, and existing schema-diff tools target live databases, not DBML files. `dbml-diff` compares the two documents *structurally* - tables, columns, types, nullability, primary keys, enums - and tells you exactly what changed. Related upstream issue: [holistics/dbml#175](https://github.com/holistics/dbml/issues/175).
+If you keep your database schema as DBML in version control, `git diff` between two versions is line-noise: attribute reordering, whitespace, and hundreds of unchanged lines drown the handful of real changes. dbdiagram.io has no built-in version compare, and existing schema-diff tools target live databases, not DBML files. `dbml-diff` compares the two documents *structurally* - tables, columns, types, nullability, primary keys, enums - and tells you exactly what changed. Inspired by [holistics/dbml#175](https://github.com/holistics/dbml/issues/175).
+
+The visual diff shows *only what changed* - added, removed, and modified tables, with per-column annotations:
+
+<img src="docs/demo-diff.svg" alt="A rendered schema diff: tables prefixed NEW/MOD/DEL, changed columns suffixed and annotated, laid out in two columns" width="820">
 
 ## Install
 
@@ -72,9 +72,22 @@ The counts summary (`added: N, removed: N, modified: N`) always goes to **stderr
 | `NEW · ` / `MOD · ` / `DEL · ` enum name prefix | Enum added / modified / removed |
 | `[note: 'ADDED']` / `[note: 'REMOVED']` on an enum value | Value added / removed in a modified enum |
 
-Modified tables show only their primary key (annotated `unchanged columns omitted`) plus the changed columns; `--hide-unchanged-pk` drops that PK row for a leaner delta-only view (the block stays valid because a modified table always has at least one changed column). Added tables are stubbed to the PK with a `NEW TABLE - N columns` note by default (`--full-new-tables` emits everything); removed tables are emitted in full. Enum changes are emitted as `Enum` blocks under the same `NEW · / MOD · / DEL ·` prefixes; in a modified enum the full new value list is shown with `ADDED` notes on new values and the dropped values re-listed with `REMOVED` notes. A `DIFF SUMMARY` table at the top lists the counts: one column per metric, with the label as the column name and the count as the column type, so the numbers are visible on the canvas at a glance. It's a real table (not a standalone `Note` block) because dbdiagram renders standalone notes as Sticky Notes only on paid tiers, whereas a table always renders on the free tier. The three table counts (added / removed / modified) always appear; enum, ref, and TableGroup rows appear only for categories that changed.
+**What each block shows:**
 
-Relationship (`Ref:`) changes are counted in the `DIFF SUMMARY` table (added, removed, `retargeted` when an FK side keeps its columns but points at a new parent, and `unresolved` for a change that cannot be mapped to a single retarget). The per-ref and per-group detail - which tables changed and how - lives in `--format text` and `--format json`, not in the diagram.
+- **Modified tables** show only their primary key (annotated `unchanged columns omitted`) plus the changed columns. `--hide-unchanged-pk` drops that PK row for a leaner delta-only view; the block stays valid because a modified table always has at least one changed column.
+- **Added tables** are stubbed to the PK with a `NEW TABLE - N columns` note by default. `--full-new-tables` emits every column.
+- **Removed tables** are emitted in full.
+- **Enum changes** are emitted as `Enum` blocks under the same `NEW · / MOD · / DEL ·` prefixes. In a modified enum, the full new value list is shown with `ADDED` notes on new values, and the dropped values are re-listed with `REMOVED` notes.
+
+**The `DIFF SUMMARY` table** at the top lists the counts, one column per metric, with the label as the column name and the count as the column type, so the numbers are visible on the canvas at a glance. It is a real table rather than a standalone `Note` block because dbdiagram renders standalone notes as Sticky Notes only on paid tiers, whereas a table always renders on the free tier. The three table counts (added / removed / modified) always appear; enum, ref, and TableGroup rows appear only for categories that changed.
+
+**Relationships and groups.** `Ref:` changes are counted in the `DIFF SUMMARY` table:
+
+- `added` / `removed` - a relationship gained or dropped.
+- `retargeted` - an FK side keeps its columns but points at a new parent.
+- `unresolved` - a change that cannot be mapped to a single retarget.
+
+The per-ref and per-group detail - which tables changed and how - lives in `--format text` and `--format json`, not in the diagram.
 
 ### Viewing the diff in dbdiagram.io
 
@@ -139,9 +152,10 @@ const result = diff(oldDbmlString, newDbmlString);
 //     removed:  [ { name, columns: [...] } ],
 //     modified: [ {
 //       name,
+//       columns: [...],             // full column list after the change
 //       columnsAdded: [...], columnsRemoved: [...],
-//       columnsChanged: [ { column, changes: ['type X -> Y', ...] } ],
-//       renames: [ { from, to } ]   // heuristic candidates only
+//       columnsChanged: [ { column, changes: ['type X -> Y', ...] } ], // changes: human-readable
+//       renames: [ { from, to } ]   // from/to are column objects; heuristic candidates only
 //     } ]
 //   },
 //   enums: {
@@ -169,6 +183,8 @@ console.log(emitDbml(result, { oldLabel: 'v1', newLabel: 'v2', colors: true }));
 console.log(emitMigration(result, { oldLabel: 'v1', newLabel: 'v2' })); // T-SQL migration script
 ```
 
+Every column in the result is `{ name, type, notNull, pk, note }` (`type` is a string, `notNull` and `pk` are booleans, `note` is a string or `null`). Enum entries are `{ name, values }`, groups `{ name, tables }`, and ref endpoints `{ table, columns }`.
+
 ## Exit codes
 
 Useful for CI gates ("fail the build if the schema changed"):
@@ -192,13 +208,17 @@ Useful for CI gates ("fail the build if the schema changed"):
 **Covered by semver (breaking changes bump the major):**
 
 - The CLI flags and their meaning: `--format <text|json|dbml>`, `--migrate`, `--include-notes`, `--hide-unchanged-pk`, `--full-new-tables`, `--colors`, `-o/--output`, `--version`, `-h/--help`.
+- The two CLI guards: `--migrate` cannot be combined with `--format` (exit `2`), and `--full-new-tables` / `--colors` / `--hide-unchanged-pk` are ignored with a warning outside `--format dbml`.
 - The [exit codes](#exit-codes): `0` identical, `1` differences found, `2` error.
-- The stdout/stderr split: diff or migration output goes to stdout; the counts summary and warnings go to stderr.
-- The programmatic API: the exported `diff()` / `diffSchemas()` return shape documented under [Programmatic API](#programmatic-api), and the signatures of `emitText()`, `emitJson()`, `emitDbml()`, and `emitMigration()`.
+- The stdout/stderr split: diff or migration output goes to stdout (or the `-o` file); the counts summary and warnings go to stderr.
+- That destructive (`DROP`) and heuristic (`RENAME`) statements in `--migrate` output are emitted commented out, so a straight run of that output is non-destructive.
+- The programmatic API: the exported `diff()` return shape documented under [Programmatic API](#programmatic-api), and the signatures of `emitText()`, `emitJson()`, `emitDbml()`, and `emitMigration()`.
 
 **Not covered (may change in a minor or patch):**
 
 - The exact wording and layout of `--format text` output. It is meant to be read by a human, not parsed; scripts should use `--format json`.
+- The exact wording of the stderr counts summary. A summary is always printed to stderr, but its text is for humans; scripts should key off the exit code and `--format json`.
+- The human-readable phrases in `columnsChanged[].changes` (for example `type int -> bigint`, `became PK`). The array is part of the return shape, but the exact wording may change in a minor; consumers should key off the structured fields, not the phrases.
 - The layout of the annotated `--format dbml` document: table stubbing, the `DIFF SUMMARY` table, column annotations, and note text. These render a diagram and are tuned for readability, not for machine consumption.
 - The generated `--migrate` T-SQL: statement ordering, comments, and synthesized constraint names. `--migrate` is T-SQL-only and its output is a starting point for review, not a frozen contract.
 - Any behavior reached only through an undocumented export or internal module.
