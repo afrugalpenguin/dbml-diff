@@ -20,4 +20,4 @@
 - The generated `--migrate` T-SQL: statement ordering, comments, and synthesized constraint names. `--migrate` is T-SQL-only and its output is a starting point for review, not a frozen contract.
 - Any behavior reached only through an undocumented export or internal module.
 
-`@dbml/core` is a runtime dependency; parse behavior it defines (which DBML constructs are accepted, how they are normalized) can shift when that dependency is upgraded.
+`@dbml/core` is the runtime dependency that does the actual DBML parsing. It is pinned to an exact version, so parsing behaviour (which DBML constructs are accepted, how they are normalized) is reproducible across installs: everyone on a given `dbml-diff` version gets the same parser. That behaviour changes only when a new release of `dbml-diff` deliberately upgrades `@dbml/core`.
