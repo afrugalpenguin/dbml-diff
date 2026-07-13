@@ -1,0 +1,14 @@
+version: 2
+updates:
+  # Watch @dbml/core only. It is pinned to an exact version for reproducible
+  # parsing, so upstream releases do not flow in automatically. Dependabot opens
+  # a PR when a new version ships; CI runs on it, so we upgrade deliberately with
+  # the pass/fail signal already attached.
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: weekly
+    allow:
+      - dependency-name: "@dbml/core"
+    commit-message:
+      prefix: "chore(deps)"
