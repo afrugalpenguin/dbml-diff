@@ -67,7 +67,3 @@ See the [API reference](docs/api.md) for the full `diff()` return shape and emit
 ## Roadmap
 
 **[Visual public roadmap](https://afrugalpenguin.github.io/dbml-diff/roadmap.html)** - what shipped, what's in progress, what's next. Generated from the issue tracker: issues labelled `roadmap` become cards, `status:` labels set the column, closed issues land in Done.
-
-## License
-
-Apache-2.0.
