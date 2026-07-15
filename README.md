@@ -61,6 +61,7 @@ See the [API reference](docs/api.md) for the full `diff()` return shape and emit
 - [Visual diff guide](docs/visual-diff.md) - markers and viewing in dbdiagram.io
 - [Migration guide](docs/migration.md) - the `--migrate` T-SQL script in full
 - [API reference](docs/api.md) - the programmatic `diff()` and emitters
+- [Design notes](docs/design.md) - why the diff behaves as it does, and known limitations
 - [Stability](docs/stability.md) - the semver contract for `1.0`
 
 ## Roadmap
