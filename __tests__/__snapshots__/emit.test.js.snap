@@ -526,7 +526,7 @@ erDiagram
   "MOD · dbo.SubscriptionLines" {
     UNIQUEIDENTIFIER Id PK "unchanged columns omitted"
     INT GeoZoneId__RENAMED "RENAMED from ZoneId (heuristic - verify)"
-    DECIMAL(11,8) Surcharge__CHANGED "CHANGED: was NOT NULL, now nullable"
+    DECIMAL(11_8) Surcharge__CHANGED "CHANGED: was NOT NULL, now nullable"
   }
   "MOD · dbo.Refunds" {
     UNIQUEIDENTIFIER Id PK "unchanged columns omitted"
@@ -571,7 +571,7 @@ erDiagram
   "MOD · dbo.SubscriptionLines" {
     UNIQUEIDENTIFIER Id PK "unchanged columns omitted"
     INT GeoZoneId__RENAMED "RENAMED from ZoneId (heuristic - verify)"
-    DECIMAL(11,8) Surcharge__CHANGED "CHANGED: was NOT NULL, now nullable"
+    DECIMAL(11_8) Surcharge__CHANGED "CHANGED: was NOT NULL, now nullable"
   }
   "MOD · dbo.Refunds" {
     UNIQUEIDENTIFIER Id PK "unchanged columns omitted"
@@ -615,7 +615,7 @@ erDiagram
   }
   "MOD · dbo.SubscriptionLines" {
     INT GeoZoneId__RENAMED "RENAMED from ZoneId (heuristic - verify)"
-    DECIMAL(11,8) Surcharge__CHANGED "CHANGED: was NOT NULL, now nullable"
+    DECIMAL(11_8) Surcharge__CHANGED "CHANGED: was NOT NULL, now nullable"
   }
   "MOD · dbo.Refunds" {
     BIGINT ProcessedOn__CHANGED "CHANGED: type DATETIME -> BIGINT"

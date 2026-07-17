@@ -697,7 +697,10 @@ Table t { id int [pk] }`;
 // it: they encode the grammar limits measured against mermaid 11.16.0, so a
 // sanitiser regression fails here instead of in someone's PR comment.
 describe('emitMermaid grammar invariants', () => {
-  const IDENT = String.raw`[\p{L}_][\p{L}\p{N}_\-\[\](),]*`;
+  // No comma: mermaid 11.16.0 allows one in an identifier but an older renderer
+  // rejects DECIMAL(18,2) and drops the entire diagram, so the emitter targets
+  // the strict intersection. See the comma test below.
+  const IDENT = String.raw`[\p{L}_][\p{L}\p{N}_\-\[\]()]*`;
   const ENTITY_OPEN = /^ {2}"[^"]+" \{$/u;
   const ATTR = new RegExp(String.raw`^ {4}${IDENT} ${IDENT}( PK| FK| UK)?( "[^"]*")?$`, 'u');
 
@@ -729,6 +732,30 @@ describe('emitMermaid grammar invariants', () => {
     assertLegal(emitMermaid(result, opts));
     assertLegal(emitMermaid(result, { ...opts, fullNewTables: true }));
     assertLegal(emitMermaid(result, { ...opts, hideUnchangedPk: true }));
+  });
+
+  // Regression: DECIMAL(18,2) and friends are everywhere in T-SQL schemas, and a
+  // comma in a type made an older mermaid renderer reject the whole diagram -
+  // silently, since mermaid 11.16.0 parses it happily and CI never renders.
+  test('comma in a type is folded, so precision types stay renderable', () => {
+    const out = emitMermaid(diff(`Table t { id int [pk] }`, `Table t { id int [pk]
+  amount "DECIMAL(18,2)" }`), opts);
+    expect(out).toContain('DECIMAL(18_2) amount__ADDED');
+    expect(out).not.toContain('DECIMAL(18,2)');
+    assertLegal(out);
+  });
+
+  test('a comma inside a comment is left alone', () => {
+    const out = emitMermaid(diff(`Table t {
+  id int [pk]
+  c int [not null]
+}`, `Table t {
+  id int [pk]
+  c int
+}`), opts);
+    // The change phrase keeps its comma; only identifiers are sanitised.
+    expect(out).toContain('"CHANGED: was NOT NULL, now nullable"');
+    assertLegal(out);
   });
 
   test('multi-word column type collapses to a single token', () => {

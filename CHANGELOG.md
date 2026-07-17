@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- `--format mermaid` emits a Mermaid `erDiagram` block, rendering the same diff as `--format dbml` in a notation that GitHub and Azure DevOps render natively - nothing for the reader to install. The block is emitted bare, without a markdown code fence, so `-o diff.mmd` writes a usable file; wrap it yourself to embed it. Also exported programmatically as `emitMermaid()`. (#3)
+- `--format mermaid` emits a Mermaid `erDiagram` block, rendering the same diff as `--format dbml` in a notation that GitHub and Azure DevOps render natively - nothing for the reader to install. The block is emitted bare, without a markdown code fence, so `-o diff.mmd` writes a usable file; wrap it yourself to embed it. Identifiers are folded to satisfy Mermaid's grammar, which is far stricter than DBML's: multi-word types, precision types (`DECIMAL(18,2)` becomes `DECIMAL(18_2)`), names with spaces, and leading digits are all substituted, and the emitter targets the strictest grammar seen rather than the newest, because renderers pin their own Mermaid version and reject the whole diagram over one bad token. Also exported programmatically as `emitMermaid()`. (#3)
 
 ### Changed
 

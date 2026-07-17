@@ -34,7 +34,9 @@ That is deliberate. Doing it means taking `mermaid` as a devDependency, which dr
 
 Instead the grammar rules the emitter depends on are asserted directly, in the `emitMermaid grammar invariants` block in `__tests__/emit.test.js`. Those rules were measured against mermaid 11.16.0: entity names must be quoted and cannot contain `"`; attribute types and names must be a single bare token starting with a letter; comments cannot contain `"`; and a bare `%%` line is not a comment (Mermaid's stripper matches `%%[^\n]+`, so an empty one reaches the grammar and fails the whole diagram).
 
-If you touch the Mermaid emitter, the honest check is still to paste the output into a real renderer and look at it. The invariants catch a regression against the rules we know; they cannot catch a rule we never learned.
+**Target the strict intersection, not the newest grammar.** Renderers pin their own Mermaid version, and a construct the current release accepts can still be rejected by the one your reader is using - taking the entire diagram down with it, not just the offending row. Commas in identifiers are the worked example: mermaid 11.16.0 parses `DECIMAL(18,2)` without complaint, an older renderer refuses to draw anything at all, and `DECIMAL(18_2)` works everywhere. That bug shipped through a green test suite and a clean parse check, and was only caught by looking at a picture.
+
+If you touch the Mermaid emitter, the honest check is still to paste the output into a real renderer and look at it - ideally one you did not write. Use a schema with `DECIMAL(18,2)` columns and a table that changed a lot, not a toy fixture; the tidy cases pass either way. The invariants catch a regression against the rules we know; they cannot catch a rule we never learned.
 
 ## Commit messages
 

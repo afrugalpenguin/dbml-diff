@@ -64,8 +64,11 @@ Mermaid is far stricter than DBML about identifiers. A column type or name must 
 | `c "character varying(50)"` | `character_varying(50) c` |
 | `"my col" int` | `int my_col` |
 | `"2fa" bool` | `bool _2fa` |
+| `amount "DECIMAL(18,2)"` | `DECIMAL(18_2) amount` |
 
-Single-token types (`varchar(50)`, `decimal(18,2)`, `int[]`, `NVARCHAR(MAX)`) pass through untouched, so most schemas are unaffected. Mermaid also has no escape for a double quote, so a `"` inside a note or a name is folded to `'`, and it has no NOT NULL concept, so nullability is carried in the column comment instead of being dropped.
+Commas are folded even though current Mermaid accepts them in an identifier. Older renderers reject `DECIMAL(18,2)` and drop the entire diagram rather than just that row, and renderers pin their own Mermaid version, so this output targets the strict intersection instead of the newest grammar. A comma inside a *comment* is fine and is left alone, so `CHANGED: was NOT NULL, now nullable` reads normally.
+
+Simple types (`varchar(50)`, `NVARCHAR(MAX)`, `int`) pass through untouched. Mermaid also has no escape for a double quote, so a `"` inside a note or a name is folded to `'`, and it has no NOT NULL concept, so nullability is carried in the column comment instead of being dropped.
 
 ## Viewing the diff in dbdiagram.io
 
