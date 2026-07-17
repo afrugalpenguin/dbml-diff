@@ -1,13 +1,15 @@
 {
   "name": "dbml-diff",
   "version": "1.0.0",
-  "description": "Structural diff for DBML schema files - emits text, JSON, or an annotated DBML document that renders as a visual diff in dbdiagram.io",
+  "description": "Structural diff for DBML schema files - emits text, JSON, an annotated DBML document that renders as a visual diff in dbdiagram.io, D2 diagram source, or a locally-rendered SVG",
   "keywords": [
     "dbml",
     "diff",
     "schema",
     "database",
     "dbdiagram",
+    "d2",
+    "svg",
     "migration"
   ],
   "license": "Apache-2.0",
@@ -40,7 +42,16 @@
   "dependencies": {
     "@dbml/core": "8.3.1"
   },
+  "peerDependencies": {
+    "@terrastruct/d2": "^0.1.33"
+  },
+  "peerDependenciesMeta": {
+    "@terrastruct/d2": {
+      "optional": true
+    }
+  },
   "devDependencies": {
+    "@terrastruct/d2": "^0.1.33",
     "jest": "^30.4.2"
   }
 }

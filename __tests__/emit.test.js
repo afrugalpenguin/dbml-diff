@@ -3,7 +3,7 @@
 const fs = require('fs');
 const path = require('path');
 const { Parser } = require('@dbml/core');
-const { diff, emitText, emitJson, emitDbml, emitMigration } = require('../lib');
+const { diff, emitText, emitJson, emitDbml, emitD2, emitMigration } = require('../lib');
 
 const FIXTURES = path.join(__dirname, 'fixtures');
 const v1 = fs.readFileSync(path.join(FIXTURES, 'v1.dbml'), 'utf8');
@@ -624,5 +624,96 @@ Ref: posts.uid > posts.id`,
   name varchar(50) }`);
     const out = emitDbml(tableOnly, { date: DATE });
     expect(out).not.toContain('Refs added');
+  });
+});
+
+describe('emitD2 (v1 -> v2 fixtures)', () => {
+  const result = diff(v1, v2);
+  const opts = { oldLabel: 'v1.dbml', newLabel: 'v2.dbml', date: DATE };
+
+  test('emitD2 default matches snapshot', () => {
+    expect(emitD2(result, opts)).toMatchSnapshot();
+  });
+
+  test('emitD2 with fullNewTables matches snapshot', () => {
+    expect(emitD2(result, { ...opts, fullNewTables: true })).toMatchSnapshot();
+  });
+
+  test('emitD2 with hideUnchangedPk matches snapshot', () => {
+    expect(emitD2(result, { ...opts, hideUnchangedPk: true })).toMatchSnapshot();
+  });
+
+  test('opens with a root grid-columns of ceil(sqrt(shape count))', () => {
+    // v1->v2: 4 modified + 1 added + 1 removed + 1 summary = 7 shapes -> 3 cols.
+    const out = emitD2(result, opts);
+    expect(out.split('\n')[0]).toBe('grid-columns: 3');
+  });
+
+  test('every table is a sql_table with a state fill', () => {
+    const out = emitD2(result, opts);
+    expect(out).toContain('shape: sql_table');
+    expect(out).toContain('style.fill: "#f39c12"'); // modified
+    expect(out).toContain('style.fill: "#2ecc71"'); // added
+    expect(out).toContain('style.fill: "#e74c3c"'); // removed
+  });
+
+  test('marker prefixes and state name prefixes both carry through', () => {
+    const out = emitD2(result, opts);
+    expect(out).toContain('label: "MOD · dbo.Subscriptions"');
+    expect(out).toContain('label: "NEW · dbo.PlanKind"');
+    expect(out).toMatch(/"\+ PlanKindId": "INT"/);      // added column marker
+  });
+
+  test('change detail rides in a tooltip, keeping the row short', () => {
+    const out = emitD2(result, opts);
+    expect(out).toContain('.tooltip: "was NOT NULL, now nullable"');
+  });
+
+  test('a PK column carries a primary_key constraint badge', () => {
+    const out = emitD2(result, opts);
+    expect(out).toContain('{constraint: primary_key}');
+  });
+
+  test('summary is a sql_table carrying the same counts, categories gated', () => {
+    const out = emitD2(result, opts);
+    expect(out).toContain('label: "DIFF SUMMARY: v1.dbml -> v2.dbml"');
+    expect(out).toContain('"Tables modified": "4"');
+    const tableOnly = diff(`Table t { id int [pk] }`, `Table t { id int [pk]
+  name varchar(50) }`);
+    expect(emitD2(tableOnly, opts)).not.toContain('Refs added');
+  });
+
+  test('a double quote in a note is folded to a single quote in the tooltip', () => {
+    // A note can legitimately contain a double quote; D2 quoted strings cannot,
+    // so d2q must fold it. Added-table full mode carries the note as a tooltip.
+    const out = emitD2(diff(`Table a { id int [pk] }`, `Table a { id int [pk] }
+Table t {
+  id int [pk]
+  c int [note: 'say "hi"']
+}`), { ...opts, fullNewTables: true });
+    expect(out).toContain(`say 'hi'`);
+    // No unescaped inner double quote survived inside any quoted string.
+    for (const line of out.split('\n')) {
+      const quotes = (line.match(/"/g) || []).length;
+      expect(quotes % 2).toBe(0);
+    }
+  });
+
+  test('a comma in a type is preserved (D2 needs no sanitising)', () => {
+    const out = emitD2(diff(`Table t { id int [pk] }`, `Table t { id int [pk]
+  amount "DECIMAL(18,2)" }`), opts);
+    expect(out).toContain('"DECIMAL(18,2)"');
+  });
+
+  test('a backslash in a label is doubled (Windows path in oldLabel/newLabel)', () => {
+    // A Windows path like C:\new.dbml would otherwise be read by D2 as
+    // containing a \n newline, which it rejects. The label must double it.
+    const out = emitD2(result, { oldLabel: 'C:\\schemas\\new.dbml', newLabel: 'b', date: DATE });
+    // The quoted label doubles the backslash so D2 does not read \n as a newline.
+    expect(out).toContain('label: "DIFF SUMMARY: C:\\\\schemas\\\\new.dbml -> b"');
+  });
+
+  test('is exported from the package entry point', () => {
+    expect(typeof require('../lib').emitD2).toBe('function');
   });
 });

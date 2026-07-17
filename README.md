@@ -4,12 +4,13 @@
 [![CI](https://github.com/afrugalpenguin/dbml-diff/actions/workflows/test.yml/badge.svg)](https://github.com/afrugalpenguin/dbml-diff/actions/workflows/test.yml)
 [![license](https://img.shields.io/npm/l/dbml-diff)](LICENSE)
 
-Structurally diff two [DBML](https://dbml.dbdiagram.io/) schema files and emit the result as text, JSON, or an annotated DBML document that renders as a **visual diff in [dbdiagram.io](https://dbdiagram.io/)**.
+Structurally diff two [DBML](https://dbml.dbdiagram.io/) schema files and emit the result as text, JSON, an annotated DBML document that renders as a **visual diff in [dbdiagram.io](https://dbdiagram.io/)**, or a **locally-rendered SVG** via [D2](https://d2lang.com).
 
 ```sh
-npx dbml-diff old.dbml new.dbml                             # readable text summary
-npx dbml-diff old.dbml new.dbml --format dbml -o diff.dbml  # visual diff, paste into dbdiagram.io
-npx dbml-diff old.dbml new.dbml --migrate -o up.sql         # T-SQL migration script
+npx dbml-diff old.dbml new.dbml                              # readable text summary
+npx dbml-diff old.dbml new.dbml --format dbml -o diff.dbml   # visual diff, paste into dbdiagram.io
+npx dbml-diff old.dbml new.dbml --format svg -o diff.svg     # render locally to a self-contained SVG
+npx dbml-diff old.dbml new.dbml --migrate -o up.sql          # T-SQL migration script
 ```
 
 ## Why
@@ -38,7 +39,11 @@ See the [CLI reference](docs/cli.md) for the full flag list, output streams, exi
 
 ## Visual diff
 
-`--format dbml` emits an annotated DBML document that renders in dbdiagram.io as a diff of only what changed, using `NEW · / MOD · / DEL ·` table prefixes and `__ADDED / __REMOVED / __RENAMED / __CHANGED` column suffixes. See the [visual diff guide](docs/visual-diff.md) for every marker and how to view it in dbdiagram.io.
+`--format dbml` emits an annotated DBML document that renders in dbdiagram.io as a diff of only what changed, using `NEW · / MOD · / DEL ·` table prefixes and `__ADDED / __REMOVED / __RENAMED / __CHANGED` column suffixes.
+
+`--format svg` renders the same diff locally to a self-contained SVG via [D2](https://d2lang.com) - state-coloured table headers, tooltips for change detail, and a grid layout that stays compact where dbdiagram spreads out. It needs the optional `@terrastruct/d2` package (`npm i @terrastruct/d2`); `--format d2` emits the D2 source with nothing to install.
+
+See the [visual diff guide](docs/visual-diff.md) for every marker, the D2/SVG output, and how to view it in dbdiagram.io.
 
 ## Migration script
 
@@ -47,7 +52,7 @@ See the [CLI reference](docs/cli.md) for the full flag list, output streams, exi
 ## Programmatic API
 
 ```js
-const { diff, emitText, emitJson, emitDbml, emitMigration } = require('dbml-diff');
+const { diff, emitText, emitJson, emitDbml, emitD2, emitMigration, renderSvg } = require('dbml-diff');
 
 const result = diff(oldDbmlString, newDbmlString);
 console.log(emitText(result));
@@ -58,7 +63,7 @@ See the [API reference](docs/api.md) for the full `diff()` return shape and emit
 ## Documentation
 
 - [CLI reference](docs/cli.md) - flags, output streams, exit codes, parsing behaviour
-- [Visual diff guide](docs/visual-diff.md) - markers and viewing in dbdiagram.io
+- [Visual diff guide](docs/visual-diff.md) - markers, the D2/SVG output, and viewing in dbdiagram.io
 - [Migration guide](docs/migration.md) - the `--migrate` T-SQL script in full
 - [API reference](docs/api.md) - the programmatic `diff()` and emitters
 - [Design notes](docs/design.md) - why the diff behaves as it does, and known limitations

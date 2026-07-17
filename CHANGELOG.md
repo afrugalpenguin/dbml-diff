@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `--format d2` emits [D2](https://d2lang.com) diagram source (`sql_table` shapes, state-coloured headers, change detail in tooltips, laid out in a grid), and `--format svg` renders that D2 to a self-contained SVG locally (fonts embedded, no network). D2's grid layout keeps a large diff compact, where the disconnected tables of `--format dbml` spread into an ever-wider row. Exported programmatically as `emitD2()` and `renderSvg()`. SVG rendering needs the optional `@terrastruct/d2` package (a multi-megabyte WASM blob, declared as an optional peer dependency so a plain install never pulls it); `--format d2` needs nothing extra, and `--format svg` exits with an install hint when the package is absent. (#2)
+
+### Changed
+
+- `--full-new-tables` and `--hide-unchanged-pk` now apply to every visual format (`--format dbml`, `d2`, `svg`) instead of `--format dbml` alone. `--colors` remains dbml-only: it emits dbdiagram `headercolor` annotations, and the D2 formats colour headers by default. The warning printed when a flag is ignored names the formats it does apply to. (#2)
+
 ## [1.0.0] - 2026-07-13
 
 First stable release. The public API is now covered by Semantic Versioning: the CLI flags, exit codes, the stdout/stderr split, and the programmatic `diff()` / `emit*()` surface will not change incompatibly without a major version bump. See the stability contract in `docs/stability.md` for exactly what is and is not covered.
