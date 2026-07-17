@@ -4,7 +4,8 @@
 const fs = require('fs');
 const { parseSchema } = require('../lib/parse');
 const { diffSchemas, changeCounts } = require('../lib/diff');
-const { emitText, emitJson, emitDbml, emitMigration } = require('../lib/emit');
+const { emitText, emitJson, emitDbml, emitD2, emitMigration } = require('../lib/emit');
+const { renderSvg } = require('../lib/render');
 const pkg = require('../package.json');
 
 const USAGE = `Usage: dbml-diff <old.dbml> <new.dbml> [options]
@@ -12,14 +13,18 @@ const USAGE = `Usage: dbml-diff <old.dbml> <new.dbml> [options]
 Structurally diff two DBML schema files.
 
 Options:
-  --format <text|json|dbml>   output format (default: text)
-  --full-new-tables           in dbml format, emit full column lists for
+  --format <text|json|dbml|d2|svg>
+                              output format (default: text). dbml renders in
+                              dbdiagram.io; d2 emits D2 diagram source; svg
+                              renders that D2 locally to a self-contained SVG
+                              (needs the optional @terrastruct/d2 package)
+  --full-new-tables           in a visual format, emit full column lists for
                               added tables (default: stub to PK + note with
                               column count)
   --colors                    in dbml format, use headercolor annotations
                               (requires dbdiagram paid tier to render;
                               name prefixes are always emitted regardless)
-  --hide-unchanged-pk         in dbml format, drop the unchanged primary-key
+  --hide-unchanged-pk         in a visual format, drop the unchanged primary-key
                               row from modified tables (leaner delta-only view)
   --migrate                   emit a T-SQL migration script (ALTER/CREATE DDL)
                               instead of a diff; DROP and heuristic RENAME
@@ -42,6 +47,9 @@ Examples:
 
   dbml-diff old.dbml new.dbml --format dbml -o diff.dbml
       visual diff - paste diff.dbml into https://dbdiagram.io
+
+  dbml-diff old.dbml new.dbml --format svg -o diff.svg
+      render the diff locally to a self-contained SVG (offline)
 
   dbml-diff old.dbml new.dbml --format json
       machine-readable result on stdout (counts stay on stderr)
@@ -101,7 +109,7 @@ function parseOrFail(file, text) {
   }
 }
 
-function main() {
+async function main() {
   const argv = process.argv.slice(2);
   if (argv.length === 0) {
     process.stderr.write(`${USAGE}\n`);
@@ -123,19 +131,25 @@ function main() {
   if (opts.migrate && opts.formatGiven) {
     fail(`dbml-diff: --migrate cannot be combined with --format`);
   }
-  if (!opts.migrate && !['text', 'json', 'dbml'].includes(opts.format)) {
-    fail(`dbml-diff: invalid --format "${opts.format}" (expected text, json, or dbml)`);
+  if (!opts.migrate && !['text', 'json', 'dbml', 'd2', 'svg'].includes(opts.format)) {
+    fail(`dbml-diff: invalid --format "${opts.format}" (expected text, json, dbml, d2, or svg)`);
   }
-  // --full-new-tables, --colors, and --hide-unchanged-pk only affect dbml output.
-  // Warn (do not fail) when they are set with an incompatible format so a
-  // scripting mistake is visible instead of silently ignored.
-  const dbmlOnly = [];
-  if (opts.fullNewTables) dbmlOnly.push('--full-new-tables');
-  if (opts.colors) dbmlOnly.push('--colors');
-  if (opts.hideUnchangedPk) dbmlOnly.push('--hide-unchanged-pk');
-  if (dbmlOnly.length && (opts.migrate || opts.format !== 'dbml')) {
-    const ctx = opts.migrate ? '--migrate' : `--format ${opts.format}`;
-    process.stderr.write(`dbml-diff: ${dbmlOnly.join(', ')} apply only to --format dbml; ignored with ${ctx}\n`);
+  // --full-new-tables and --hide-unchanged-pk are view-density knobs shared by
+  // every visual format (dbml, d2, svg). --colors is a dbdiagram headercolor
+  // annotation with no equivalent elsewhere (d2/svg colour headers by default),
+  // so it stays dbml-only. Warn (do not fail) when a flag is set with a format
+  // that ignores it, so a scripting mistake is visible instead of silently
+  // dropped.
+  const ctx = opts.migrate ? '--migrate' : `--format ${opts.format}`;
+  const isVisual = !opts.migrate && ['dbml', 'd2', 'svg'].includes(opts.format);
+  const viewFlags = [];
+  if (opts.fullNewTables) viewFlags.push('--full-new-tables');
+  if (opts.hideUnchangedPk) viewFlags.push('--hide-unchanged-pk');
+  if (viewFlags.length && !isVisual) {
+    process.stderr.write(`dbml-diff: ${viewFlags.join(', ')} apply only to a visual format (--format dbml, d2, or svg); ignored with ${ctx}\n`);
+  }
+  if (opts.colors && (opts.migrate || opts.format !== 'dbml')) {
+    process.stderr.write(`dbml-diff: --colors applies only to --format dbml; ignored with ${ctx}\n`);
   }
 
   const [oldFile, newFile] = opts.files;
@@ -143,21 +157,34 @@ function main() {
   const newSchema = parseOrFail(newFile, readFileOrFail(newFile));
   const result = diffSchemas(oldSchema, newSchema, { includeNotes: opts.includeNotes });
 
+  // View options shared by the visual formats.
+  const view = {
+    oldLabel: oldFile,
+    newLabel: newFile,
+    fullNewTables: opts.fullNewTables,
+    hideUnchangedPk: opts.hideUnchangedPk,
+  };
   let out;
   if (opts.migrate) {
     out = emitMigration(result, { oldLabel: oldFile, newLabel: newFile });
   } else if (opts.format === 'json') out = emitJson(result);
-  else if (opts.format === 'dbml') {
-    out = emitDbml(result, {
-      oldLabel: oldFile,
-      newLabel: newFile,
-      fullNewTables: opts.fullNewTables,
-      colors: opts.colors,
-      hideUnchangedPk: opts.hideUnchangedPk,
-    });
+  else if (opts.format === 'dbml') out = emitDbml(result, { ...view, colors: opts.colors });
+  else if (opts.format === 'd2') out = emitD2(result, view);
+  else if (opts.format === 'svg') {
+    try {
+      out = await renderSvg(result, view);
+    } catch (err) {
+      // Missing optional dependency is a clean usage error with an install
+      // hint, not a stack trace.
+      if (err && err.code === 'D2_NOT_INSTALLED') fail(err.message);
+      fail(`dbml-diff: SVG render failed: ${err && err.message ? err.message : String(err)}`);
+    }
   } else out = emitText(result);
   if (!out.endsWith('\n')) out += '\n';
 
+  // Resolves once stdout output has actually flushed to the OS, so a forced
+  // exit below cannot truncate a large SVG on a pipe.
+  let stdoutFlushed = Promise.resolve();
   if (opts.output) {
     try {
       fs.writeFileSync(opts.output, out);
@@ -165,7 +192,7 @@ function main() {
       fail(`dbml-diff: cannot write ${opts.output}: ${err.message}`);
     }
   } else {
-    process.stdout.write(out);
+    stdoutFlushed = new Promise((resolve) => process.stdout.write(out, resolve));
   }
 
   const { counts, enums, refs, groups } = result;
@@ -185,7 +212,20 @@ function main() {
   // diff written to a pipe (async stdout on POSIX) is still buffered here, and
   // process.exit() would drop everything past the ~64KB OS pipe buffer. Letting
   // main() return lets Node drain stdout before exiting with this code.
-  process.exitCode = cc.total ? 1 : 0;
+  const code = cc.total ? 1 : 0;
+  process.exitCode = code;
+
+  // The D2 renderer (--format svg) runs a worker that keeps the event loop
+  // alive, so the process would hang here instead of exiting. Force the exit,
+  // but only after stdout has actually flushed, so the pipe-truncation concern
+  // above still holds.
+  if (opts.format === 'svg') {
+    await stdoutFlushed;
+    process.exit(code);
+  }
 }
 
-main();
+main().catch((err) => {
+  process.stderr.write(`dbml-diff: ${err && err.message ? err.message : String(err)}\n`);
+  process.exit(2);
+});

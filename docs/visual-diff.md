@@ -43,3 +43,26 @@ The per-ref and per-group detail - which tables changed and how - lives in `--fo
 2. Open [dbdiagram.io](https://dbdiagram.io/d) and create a new diagram.
 3. Paste the contents of `diff.dbml` into the editor.
 4. The diagram now shows only what changed: scan for the `NEW ·` / `MOD ·` / `DEL ·` tables, and hover the annotated columns to read the change notes. With `--colors` (paid tier) the table headers are colour-coded too.
+
+## D2 and SVG (`--format d2`, `--format svg`)
+
+These render the same diff as `--format dbml`, but through [D2](https://d2lang.com) instead of dbdiagram.io. They exist because D2 solves a problem the other visual formats cannot: a diff with no relationship lines is a set of disconnected tables, and D2's `grid` layout tiles them into a compact block, where dbdiagram and Mermaid spread them into one ever-wider row.
+
+- **`--format d2`** emits D2 diagram source. Pure text, no dependency to install. Render it with the [D2 CLI](https://d2lang.com/tour/install), the [playground](https://play.d2lang.com), or an editor plugin - or pipe it straight to `--format svg`.
+- **`--format svg`** renders that D2 to a self-contained SVG locally (fonts embedded, no network), so it suits schemas that must not leave the machine. It needs the optional `@terrastruct/d2` package:
+
+  ```sh
+  npm i @terrastruct/d2
+  dbml-diff old.dbml new.dbml --format svg -o diff.svg
+  ```
+
+  Without the package, `--format svg` exits `2` with an install hint; `--format d2` always works.
+
+### What the diagram shows
+
+- Each table is a D2 `sql_table` shape. The **header fill** encodes state: green added, amber modified, red removed - no paid tier, unlike dbdiagram's `--colors`. The `NEW ·` / `MOD ·` / `DEL ·` name prefix is kept as a redundant, colour-blind-safe signal.
+- A column row is `name: type`, with a `primary_key` constraint badge on the PK. Changed columns carry a leading marker - `+` added, `-` removed, `~` changed, `?` rename candidate - and the change detail (`was NOT NULL, now nullable`) rides in a **tooltip** on hover, keeping the row short.
+- The `DIFF SUMMARY` is its own `sql_table` carrying the same counts, with enum / ref / group rows shown only when non-zero.
+- Tables tile into a grid of `ceil(sqrt(n))` columns, so the picture stays roughly square at any size.
+
+`--full-new-tables` and `--hide-unchanged-pk` apply here exactly as they do to `--format dbml`. Relationships are not drawn, for the same reason as every other format: the diff carries no cardinality, and a grid of disconnected tables is what makes the layout compact in the first place.

@@ -12,6 +12,8 @@ Why `dbml-diff` reports what it reports, and what it deliberately won't do. For 
 
 **Everything counts through one place.** Every "did anything change, and how many" decision - the emitter section guards, the stderr summary, and the exit code - derives from a single `changeCounts()` function, so a new change category cannot drift out of sync between call sites.
 
+**Output formats are views over the diff, and rendering is split from emitting.** Every format - text, JSON, dbml, d2, svg - renders the same `diff()` result and adds nothing to it. `--format d2` is a pure text emitter with no extra dependency; `--format svg` is that emitter plus one render step through [D2](https://d2lang.com). All the diagram logic lives in the dependency-free half, so it is fully testable without the renderer, and the multi-megabyte D2 WASM package stays an optional dependency that a plain install never pulls. The D2 formats exist for one concrete reason: the diff draws no relationships (it carries no cardinality), so its tables are a disconnected set, and D2's `grid` layout tiles them into a compact block where dbdiagram and Mermaid spread a large diff into an ever-wider, unreadable row.
+
 ## Limitations
 
 Known edges, stated plainly so you can plan around them:

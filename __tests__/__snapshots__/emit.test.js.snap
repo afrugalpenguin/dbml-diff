@@ -498,6 +498,230 @@ Group changes (1):
   + Lookups (dbo.PlanKind)"
 `;
 
+exports[`emitD2 (v1 -> v2 fixtures) emitD2 default matches snapshot 1`] = `
+"grid-columns: 3
+# SCHEMA DIFF (generated 2026-01-01)
+#   v1.dbml  ->  v2.dbml
+#   header fill: green added / amber modified / red removed
+#   row prefix : + added  - removed  ~ changed  ? rename candidate
+
+t1: {
+  shape: sql_table
+  label: "DIFF SUMMARY: v1.dbml -> v2.dbml"
+  "Tables added": "1"
+  "Tables removed": "1"
+  "Tables modified": "4"
+  "Groups added": "1"
+}
+
+t2: {
+  shape: sql_table
+  label: "MOD · dbo.Shipments"
+  style.fill: "#f39c12"
+  "Id": "UNIQUEIDENTIFIER" {constraint: primary_key}
+  "- CarrierLabel": "NVARCHAR(200)"
+  "- CarrierLabel".tooltip: "removed"
+  "- CarrierTag": "NVARCHAR(50)"
+  "- CarrierTag".tooltip: "removed"
+}
+
+t3: {
+  shape: sql_table
+  label: "MOD · dbo.Subscriptions"
+  style.fill: "#f39c12"
+  "Id": "UNIQUEIDENTIFIER" {constraint: primary_key}
+  "+ PlanKindId": "INT"
+  "+ PlanKindId".tooltip: "added, not null"
+  "~ EnrolledOn": "DATETIME"
+  "~ EnrolledOn".tooltip: "was NOT NULL, now nullable"
+}
+
+t4: {
+  shape: sql_table
+  label: "MOD · dbo.SubscriptionLines"
+  style.fill: "#f39c12"
+  "Id": "UNIQUEIDENTIFIER" {constraint: primary_key}
+  "? GeoZoneId": "INT"
+  "? GeoZoneId".tooltip: "rename candidate from ZoneId (heuristic - verify)"
+  "~ Surcharge": "DECIMAL(11,8)"
+  "~ Surcharge".tooltip: "was NOT NULL, now nullable"
+}
+
+t5: {
+  shape: sql_table
+  label: "MOD · dbo.Refunds"
+  style.fill: "#f39c12"
+  "Id": "UNIQUEIDENTIFIER" {constraint: primary_key}
+  "~ ProcessedOn": "BIGINT"
+  "~ ProcessedOn".tooltip: "type DATETIME -> BIGINT"
+}
+
+t6: {
+  shape: sql_table
+  label: "NEW · dbo.PlanKind"
+  style.fill: "#2ecc71"
+  "Id": "INT" {constraint: primary_key}
+  "+ 3 columns total": ""
+  "+ 3 columns total".tooltip: "new table"
+}
+
+t7: {
+  shape: sql_table
+  label: "DEL · dbo.LegacyLog"
+  style.fill: "#e74c3c"
+  "Id": "INT" {constraint: primary_key}
+  "Payload": "NVARCHAR(MAX)"
+}"
+`;
+
+exports[`emitD2 (v1 -> v2 fixtures) emitD2 with fullNewTables matches snapshot 1`] = `
+"grid-columns: 3
+# SCHEMA DIFF (generated 2026-01-01)
+#   v1.dbml  ->  v2.dbml
+#   header fill: green added / amber modified / red removed
+#   row prefix : + added  - removed  ~ changed  ? rename candidate
+
+t1: {
+  shape: sql_table
+  label: "DIFF SUMMARY: v1.dbml -> v2.dbml"
+  "Tables added": "1"
+  "Tables removed": "1"
+  "Tables modified": "4"
+  "Groups added": "1"
+}
+
+t2: {
+  shape: sql_table
+  label: "MOD · dbo.Shipments"
+  style.fill: "#f39c12"
+  "Id": "UNIQUEIDENTIFIER" {constraint: primary_key}
+  "- CarrierLabel": "NVARCHAR(200)"
+  "- CarrierLabel".tooltip: "removed"
+  "- CarrierTag": "NVARCHAR(50)"
+  "- CarrierTag".tooltip: "removed"
+}
+
+t3: {
+  shape: sql_table
+  label: "MOD · dbo.Subscriptions"
+  style.fill: "#f39c12"
+  "Id": "UNIQUEIDENTIFIER" {constraint: primary_key}
+  "+ PlanKindId": "INT"
+  "+ PlanKindId".tooltip: "added, not null"
+  "~ EnrolledOn": "DATETIME"
+  "~ EnrolledOn".tooltip: "was NOT NULL, now nullable"
+}
+
+t4: {
+  shape: sql_table
+  label: "MOD · dbo.SubscriptionLines"
+  style.fill: "#f39c12"
+  "Id": "UNIQUEIDENTIFIER" {constraint: primary_key}
+  "? GeoZoneId": "INT"
+  "? GeoZoneId".tooltip: "rename candidate from ZoneId (heuristic - verify)"
+  "~ Surcharge": "DECIMAL(11,8)"
+  "~ Surcharge".tooltip: "was NOT NULL, now nullable"
+}
+
+t5: {
+  shape: sql_table
+  label: "MOD · dbo.Refunds"
+  style.fill: "#f39c12"
+  "Id": "UNIQUEIDENTIFIER" {constraint: primary_key}
+  "~ ProcessedOn": "BIGINT"
+  "~ ProcessedOn".tooltip: "type DATETIME -> BIGINT"
+}
+
+t6: {
+  shape: sql_table
+  label: "NEW · dbo.PlanKind"
+  style.fill: "#2ecc71"
+  "Id": "INT" {constraint: primary_key}
+  "Title": "NVARCHAR(100)"
+  "Sku": "NVARCHAR(50)"
+}
+
+t7: {
+  shape: sql_table
+  label: "DEL · dbo.LegacyLog"
+  style.fill: "#e74c3c"
+  "Id": "INT" {constraint: primary_key}
+  "Payload": "NVARCHAR(MAX)"
+}"
+`;
+
+exports[`emitD2 (v1 -> v2 fixtures) emitD2 with hideUnchangedPk matches snapshot 1`] = `
+"grid-columns: 3
+# SCHEMA DIFF (generated 2026-01-01)
+#   v1.dbml  ->  v2.dbml
+#   header fill: green added / amber modified / red removed
+#   row prefix : + added  - removed  ~ changed  ? rename candidate
+
+t1: {
+  shape: sql_table
+  label: "DIFF SUMMARY: v1.dbml -> v2.dbml"
+  "Tables added": "1"
+  "Tables removed": "1"
+  "Tables modified": "4"
+  "Groups added": "1"
+}
+
+t2: {
+  shape: sql_table
+  label: "MOD · dbo.Shipments"
+  style.fill: "#f39c12"
+  "- CarrierLabel": "NVARCHAR(200)"
+  "- CarrierLabel".tooltip: "removed"
+  "- CarrierTag": "NVARCHAR(50)"
+  "- CarrierTag".tooltip: "removed"
+}
+
+t3: {
+  shape: sql_table
+  label: "MOD · dbo.Subscriptions"
+  style.fill: "#f39c12"
+  "+ PlanKindId": "INT"
+  "+ PlanKindId".tooltip: "added, not null"
+  "~ EnrolledOn": "DATETIME"
+  "~ EnrolledOn".tooltip: "was NOT NULL, now nullable"
+}
+
+t4: {
+  shape: sql_table
+  label: "MOD · dbo.SubscriptionLines"
+  style.fill: "#f39c12"
+  "? GeoZoneId": "INT"
+  "? GeoZoneId".tooltip: "rename candidate from ZoneId (heuristic - verify)"
+  "~ Surcharge": "DECIMAL(11,8)"
+  "~ Surcharge".tooltip: "was NOT NULL, now nullable"
+}
+
+t5: {
+  shape: sql_table
+  label: "MOD · dbo.Refunds"
+  style.fill: "#f39c12"
+  "~ ProcessedOn": "BIGINT"
+  "~ ProcessedOn".tooltip: "type DATETIME -> BIGINT"
+}
+
+t6: {
+  shape: sql_table
+  label: "NEW · dbo.PlanKind"
+  style.fill: "#2ecc71"
+  "Id": "INT" {constraint: primary_key}
+  "+ 3 columns total": ""
+  "+ 3 columns total".tooltip: "new table"
+}
+
+t7: {
+  shape: sql_table
+  label: "DEL · dbo.LegacyLog"
+  style.fill: "#e74c3c"
+  "Id": "INT" {constraint: primary_key}
+  "Payload": "NVARCHAR(MAX)"
+}"
+`;
+
 exports[`emitMigration (v1 -> v2 fixtures) emitMigration output matches snapshot 1`] = `
 "-- Schema migration: v1.dbml -> v2.dbml
 -- Generated by dbml-diff on 2026-01-01

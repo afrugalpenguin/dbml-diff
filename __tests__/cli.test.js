@@ -243,12 +243,37 @@ describe('CLI', () => {
     expect(() => JSON.parse(res.stdout)).not.toThrow();
     // ...but a warning tells the user the flag was ignored.
     expect(res.stderr).toContain('--colors');
-    expect(res.stderr).toContain('apply only to --format dbml');
+    expect(res.stderr).toContain('applies only to --format dbml');
   });
 
   test('does not warn when a dbml-only flag is used with --format dbml', () => {
     const res = run(fixture('v1.dbml'), fixture('v2.dbml'), '--format', 'dbml', '--colors');
-    expect(res.stderr).not.toContain('apply only to --format dbml');
+    expect(res.stderr).not.toContain('applies only to --format dbml');
+  });
+
+  test('--colors is dbml-only: warns with --format d2 (#2)', () => {
+    const res = run(fixture('v1.dbml'), fixture('v2.dbml'), '--format', 'd2', '--colors');
+    expect(res.stderr).toContain('--colors applies only to --format dbml');
+    expect(res.stderr).toContain('ignored with --format d2');
+  });
+
+  test('density flags apply to --format d2 without warning (#2)', () => {
+    const res = run(fixture('v1.dbml'), fixture('v2.dbml'), '--format', 'd2',
+      '--full-new-tables', '--hide-unchanged-pk');
+    expect(res.stderr).not.toContain('apply only to');
+    expect(res.stdout).toContain('shape: sql_table');
+  });
+
+  test('density flags still warn with a non-visual format', () => {
+    const res = run(fixture('v1.dbml'), fixture('v2.dbml'), '--format', 'json', '--hide-unchanged-pk');
+    expect(res.stderr).toContain('apply only to a visual format');
+  });
+
+  test('--format d2 emits D2 source on stdout (#2)', () => {
+    const res = run(fixture('v1.dbml'), fixture('v2.dbml'), '--format', 'd2');
+    expect(res.status).toBe(1);
+    expect(res.stdout).toMatch(/^grid-columns: \d+/m);
+    expect(res.stdout).toContain('shape: sql_table');
   });
 
   describe('arg-validation guards (#86)', () => {

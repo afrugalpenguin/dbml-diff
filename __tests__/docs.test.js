@@ -9,7 +9,7 @@ const pkg = require('..');
 
 // The public API promised by docs/api.md and docs/stability.md. Keep this list
 // in sync with those docs; the test asserts the code exports exactly this set.
-const PUBLIC_API = ['diff', 'emitDbml', 'emitJson', 'emitMigration', 'emitText'];
+const PUBLIC_API = ['diff', 'emitD2', 'emitDbml', 'emitJson', 'emitMigration', 'emitText', 'renderSvg'];
 
 describe('docs stay in sync with code', () => {
   test('package exports exactly the documented public API', () => {
