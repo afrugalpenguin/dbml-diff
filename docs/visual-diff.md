@@ -1,6 +1,11 @@
-# Visual diff conventions (`--format dbml`)
+# Visual diff conventions (`--format dbml`, `--format mermaid`)
 
-`--format dbml` emits an annotated DBML document that renders as a visual diff in [dbdiagram.io](https://dbdiagram.io/). It shows only what changed, with the markers below. For a quick start see the [README](../README.md).
+There are two visual formats, and they render the same diff in different notations:
+
+- **`--format dbml`** emits an annotated DBML document that renders in [dbdiagram.io](https://dbdiagram.io/).
+- **`--format mermaid`** emits a Mermaid `erDiagram` block, which renders natively in GitHub and Azure DevOps with nothing to install.
+
+Both show only what changed, using the markers below. Neither invents information: a format renders what the diff holds and nothing more, which is why neither one draws relationship lines (see [Relationships and groups](#relationships-and-groups)). For a quick start see the [README](../README.md).
 
 ## Markers
 
@@ -29,13 +34,38 @@ A `DIFF SUMMARY` table at the top lists the counts, one column per metric, with 
 
 ## Relationships and groups
 
-`Ref:` changes are counted in the `DIFF SUMMARY` table:
+Neither visual format draws relationship lines. `Ref:` changes are counted in the `DIFF SUMMARY`:
 
 - `added` / `removed` - a relationship gained or dropped.
 - `retargeted` - an FK side keeps its columns but points at a new parent.
 - `unresolved` - a change that cannot be mapped to a single retarget.
 
 The per-ref and per-group detail - which tables changed and how - lives in `--format text` and `--format json`, not in the diagram.
+
+Mermaid could draw the lines, but it requires a cardinality marker on both ends of every relationship and has no token for "unknown". The diff does not carry cardinality - the parser normalises a ref to its FK and parent sides and drops the rest - so drawing a line would mean guessing at the notation layer. In a pipeline with no human reading the diagram, a confident wrong arrow is worse than no arrow. If cardinality is ever carried through the diff itself, every format gets it at once.
+
+## Mermaid (`--format mermaid`)
+
+The block is emitted bare, without a markdown fence, so `-o diff.mmd` produces a usable `.mmd` file. Wrap it in a ```` ```mermaid ```` fence to embed it in a PR comment or a README.
+
+`--full-new-tables` and `--hide-unchanged-pk` work here exactly as they do for DBML. `--colors` does not: it emits dbdiagram `headercolor` annotations, and Mermaid has no equivalent, so it is ignored with a warning.
+
+Two things differ from the DBML view, both forced by Mermaid's grammar:
+
+- **The summary is a three-column grid.** Mermaid attributes are `type name "comment"`, and all three render, so each metric becomes category, action, count: `Tables added "3"`. The DBML trick of label-as-name plus count-as-type is not expressible - Mermaid allows neither a quoted attribute name nor a type starting with a digit.
+- **Enums render as entities marked `(enum)`.** Mermaid has no enum construct, so a changed enum becomes an entity whose attributes are its values, carrying the same `ADDED` / `REMOVED` notes.
+
+### Identifier sanitising
+
+Mermaid is far stricter than DBML about identifiers. A column type or name must be a single bare token starting with a letter, so anything else is folded to underscores:
+
+| DBML | Mermaid |
+| --- | --- |
+| `c "character varying(50)"` | `character_varying(50) c` |
+| `"my col" int` | `int my_col` |
+| `"2fa" bool` | `bool _2fa` |
+
+Single-token types (`varchar(50)`, `decimal(18,2)`, `int[]`, `NVARCHAR(MAX)`) pass through untouched, so most schemas are unaffected. Mermaid also has no escape for a double quote, so a `"` inside a note or a name is folded to `'`, and it has no NOT NULL concept, so nullability is carried in the column comment instead of being dropped.
 
 ## Viewing the diff in dbdiagram.io
 

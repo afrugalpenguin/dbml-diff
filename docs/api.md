@@ -3,7 +3,7 @@
 `dbml-diff` can be used as a library. For a quick start see the [README](../README.md); for the stability guarantees on this surface see [stability.md](stability.md).
 
 ```js
-const { diff, emitText, emitJson, emitDbml, emitMigration } = require('dbml-diff');
+const { diff, emitText, emitJson, emitDbml, emitMermaid, emitMigration } = require('dbml-diff');
 
 const result = diff(oldDbmlString, newDbmlString);
 ```
@@ -55,8 +55,10 @@ Each emitter takes the `diff()` result and returns a string.
 emitText(result);                                             // human-readable summary
 emitJson(result);                                             // pretty-printed JSON
 emitDbml(result, { oldLabel: 'v1', newLabel: 'v2', colors: true });  // annotated DBML for dbdiagram.io
+emitMermaid(result, { oldLabel: 'v1', newLabel: 'v2' });      // mermaid erDiagram block
 emitMigration(result, { oldLabel: 'v1', newLabel: 'v2' });    // T-SQL migration script
 ```
 
 - `emitDbml` options: `oldLabel`, `newLabel`, `colors`, `fullNewTables`, `hideUnchangedPk` (the last three mirror the matching CLI flags).
+- `emitMermaid` options: `oldLabel`, `newLabel`, `fullNewTables`, `hideUnchangedPk`. There is no `colors` option: `colors` emits dbdiagram `headercolor` annotations, which Mermaid has no equivalent for. The returned block is bare, without a markdown fence - wrap it yourself to embed it. See [visual-diff.md](visual-diff.md#mermaid-format-mermaid).
 - `emitMigration` options: `oldLabel`, `newLabel`. See [migration.md](migration.md) for what the script contains.

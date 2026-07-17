@@ -12,6 +12,8 @@ Why `dbml-diff` reports what it reports, and what it deliberately won't do. For 
 
 **Everything counts through one place.** Every "did anything change, and how many" decision - the emitter section guards, the stderr summary, and the exit code - derives from a single `changeCounts()` function, so a new change category cannot drift out of sync between call sites.
 
+**Output formats are views over the diff, never a second opinion.** The diff result is the contract; `--format text`, `json`, `dbml` and `mermaid` render it in different notations and add nothing to it. When a format cannot express something honestly, that is a gap in the diff, not a licence for the emitter to infer around it. Mermaid is the worked example: it demands a cardinality marker on every relationship and has no "unknown" token, and the diff does not carry cardinality, so `--format mermaid` draws no relationship lines rather than guessing at one. The day the diff carries cardinality, every format gets it at once.
+
 ## Limitations
 
 Known edges, stated plainly so you can plan around them:
@@ -22,5 +24,7 @@ Known edges, stated plainly so you can plan around them:
 - **Synthesized FK constraint names will not match your database.** `--migrate` builds names like `FK_child_parent_cols`; a real database almost certainly named the constraint something else, so any `DROP CONSTRAINT` line needs the real name before you uncomment it.
 - **Some generated migrations can fail against existing data** - adding a `NOT NULL` column without a default, or tightening a column to `NOT NULL` while NULLs exist. These carry an inline `-- NOTE`; the tool flags them rather than pretending they are safe.
 - **Column note changes are off by default.** Notes are documentation noise in most structural diffs; `--include-notes` opts them in.
+- **`--format mermaid` output is not validated against a real Mermaid renderer.** The emitter targets Mermaid's documented grammar, and the tests assert the rules it relies on, but nothing in CI feeds the output to Mermaid itself. GitHub and Azure DevOps each ship their own Mermaid version anyway, so passing such a check would not have guaranteed their renderers agree. See [CONTRIBUTING](../CONTRIBUTING.md) for why that trade was made.
+- **Mermaid cannot express every DBML identifier.** Multi-word types (`character varying(50)`) and quoted names with spaces are folded to single tokens, and a `"` in a note becomes `'`. The [visual diff conventions](visual-diff.md#identifier-sanitising) spell out the substitutions.
 
 The migration output is a reviewed starting point, not a frozen contract - see the [migration guide](migration.md) for the full statement-by-statement behaviour, and [stability](stability.md) for the semver contract.

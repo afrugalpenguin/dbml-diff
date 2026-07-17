@@ -15,14 +15,17 @@ Usage: dbml-diff <old.dbml> <new.dbml> [options]
 Structurally diff two DBML schema files.
 
 Options:
-  --format <text|json|dbml>   output format (default: text)
-  --full-new-tables           in dbml format, emit full column lists for
+  --format <text|json|dbml|mermaid>
+                              output format (default: text). dbml renders in
+                              dbdiagram.io; mermaid emits an erDiagram block
+                              that renders natively in GitHub / Azure DevOps
+  --full-new-tables           in a visual format, emit full column lists for
                               added tables (default: stub to PK + note with
                               column count)
   --colors                    in dbml format, use headercolor annotations
                               (requires dbdiagram paid tier to render;
                               name prefixes are always emitted regardless)
-  --hide-unchanged-pk         in dbml format, drop the unchanged primary-key
+  --hide-unchanged-pk         in a visual format, drop the unchanged primary-key
                               row from modified tables (leaner delta-only view)
   --migrate                   emit a T-SQL migration script (ALTER/CREATE DDL)
                               instead of a diff; DROP and heuristic RENAME
@@ -45,6 +48,10 @@ Examples:
 
   dbml-diff old.dbml new.dbml --format dbml -o diff.dbml
       visual diff - paste diff.dbml into https://dbdiagram.io
+
+  dbml-diff old.dbml new.dbml --format mermaid -o diff.mmd
+      visual diff as an erDiagram block - wrap it in a mermaid code fence to
+      render it in a GitHub or Azure DevOps comment
 
   dbml-diff old.dbml new.dbml --format json
       machine-readable result on stdout (counts stay on stderr)

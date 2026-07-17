@@ -4,12 +4,13 @@
 [![CI](https://github.com/afrugalpenguin/dbml-diff/actions/workflows/test.yml/badge.svg)](https://github.com/afrugalpenguin/dbml-diff/actions/workflows/test.yml)
 [![license](https://img.shields.io/npm/l/dbml-diff)](LICENSE)
 
-Structurally diff two [DBML](https://dbml.dbdiagram.io/) schema files and emit the result as text, JSON, or an annotated DBML document that renders as a **visual diff in [dbdiagram.io](https://dbdiagram.io/)**.
+Structurally diff two [DBML](https://dbml.dbdiagram.io/) schema files and emit the result as text, JSON, a **visual diff in [dbdiagram.io](https://dbdiagram.io/)**, or a **Mermaid `erDiagram`** that renders natively in GitHub and Azure DevOps.
 
 ```sh
-npx dbml-diff old.dbml new.dbml                             # readable text summary
-npx dbml-diff old.dbml new.dbml --format dbml -o diff.dbml  # visual diff, paste into dbdiagram.io
-npx dbml-diff old.dbml new.dbml --migrate -o up.sql         # T-SQL migration script
+npx dbml-diff old.dbml new.dbml                              # readable text summary
+npx dbml-diff old.dbml new.dbml --format dbml -o diff.dbml   # visual diff, paste into dbdiagram.io
+npx dbml-diff old.dbml new.dbml --format mermaid -o diff.mmd # visual diff for a GitHub / ADO comment
+npx dbml-diff old.dbml new.dbml --migrate -o up.sql          # T-SQL migration script
 ```
 
 ## Why
@@ -32,13 +33,18 @@ npm i -g dbml-diff    # or keep using npx
 dbml-diff <old.dbml> <new.dbml> [options]
 ```
 
-The default output is a readable text summary. `--format json` gives a machine-readable result, and `--format dbml` gives the annotated document for the visual diff. Diff output goes to stdout (or the `-o` file); the counts summary goes to stderr, so stdout stays pipeable. Exit codes are `0` (identical), `1` (differences found), and `2` (error), which makes it a drop-in CI gate.
+The default output is a readable text summary. `--format json` gives a machine-readable result, and `--format dbml` or `--format mermaid` gives a visual diff. Diff output goes to stdout (or the `-o` file); the counts summary goes to stderr, so stdout stays pipeable. Exit codes are `0` (identical), `1` (differences found), and `2` (error), which makes it a drop-in CI gate.
 
 See the [CLI reference](docs/cli.md) for the full flag list, output streams, exit codes, and parsing behaviour.
 
 ## Visual diff
 
-`--format dbml` emits an annotated DBML document that renders in dbdiagram.io as a diff of only what changed, using `NEW · / MOD · / DEL ·` table prefixes and `__ADDED / __REMOVED / __RENAMED / __CHANGED` column suffixes. See the [visual diff guide](docs/visual-diff.md) for every marker and how to view it in dbdiagram.io.
+Two formats render the same diff of only what changed, using `NEW · / MOD · / DEL ·` table prefixes and `__ADDED / __REMOVED / __RENAMED / __CHANGED` column suffixes:
+
+- `--format dbml` emits an annotated DBML document you paste into dbdiagram.io.
+- `--format mermaid` emits a Mermaid `erDiagram` block, which renders natively in GitHub and Azure DevOps - nothing to install for whoever reads it. Wrap it in a ```` ```mermaid ```` fence to embed it.
+
+See the [visual diff guide](docs/visual-diff.md) for every marker, the Mermaid specifics, and how to view it in dbdiagram.io.
 
 ## Migration script
 
@@ -47,7 +53,7 @@ See the [CLI reference](docs/cli.md) for the full flag list, output streams, exi
 ## Programmatic API
 
 ```js
-const { diff, emitText, emitJson, emitDbml, emitMigration } = require('dbml-diff');
+const { diff, emitText, emitJson, emitDbml, emitMermaid, emitMigration } = require('dbml-diff');
 
 const result = diff(oldDbmlString, newDbmlString);
 console.log(emitText(result));
@@ -58,7 +64,7 @@ See the [API reference](docs/api.md) for the full `diff()` return shape and emit
 ## Documentation
 
 - [CLI reference](docs/cli.md) - flags, output streams, exit codes, parsing behaviour
-- [Visual diff guide](docs/visual-diff.md) - markers and viewing in dbdiagram.io
+- [Visual diff guide](docs/visual-diff.md) - markers, the Mermaid format, and viewing in dbdiagram.io
 - [Migration guide](docs/migration.md) - the `--migrate` T-SQL script in full
 - [API reference](docs/api.md) - the programmatic `diff()` and emitters
 - [Design notes](docs/design.md) - why the diff behaves as it does, and known limitations

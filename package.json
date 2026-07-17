@@ -1,13 +1,15 @@
 {
   "name": "dbml-diff",
   "version": "1.0.0",
-  "description": "Structural diff for DBML schema files - emits text, JSON, or an annotated DBML document that renders as a visual diff in dbdiagram.io",
+  "description": "Structural diff for DBML schema files - emits text, JSON, an annotated DBML document that renders as a visual diff in dbdiagram.io, or a Mermaid erDiagram",
   "keywords": [
     "dbml",
     "diff",
     "schema",
     "database",
     "dbdiagram",
+    "mermaid",
+    "erdiagram",
     "migration"
   ],
   "license": "Apache-2.0",

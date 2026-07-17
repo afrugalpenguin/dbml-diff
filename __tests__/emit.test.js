@@ -3,7 +3,7 @@
 const fs = require('fs');
 const path = require('path');
 const { Parser } = require('@dbml/core');
-const { diff, emitText, emitJson, emitDbml, emitMigration } = require('../lib');
+const { diff, emitText, emitJson, emitDbml, emitMermaid, emitMigration } = require('../lib');
 
 const FIXTURES = path.join(__dirname, 'fixtures');
 const v1 = fs.readFileSync(path.join(FIXTURES, 'v1.dbml'), 'utf8');
@@ -624,5 +624,149 @@ Ref: posts.uid > posts.id`,
   name varchar(50) }`);
     const out = emitDbml(tableOnly, { date: DATE });
     expect(out).not.toContain('Refs added');
+  });
+});
+
+describe('emitMermaid (v1 -> v2 fixtures)', () => {
+  const result = diff(v1, v2);
+  const opts = { oldLabel: 'v1.dbml', newLabel: 'v2.dbml', date: DATE };
+
+  test('emitMermaid default matches snapshot', () => {
+    expect(emitMermaid(result, opts)).toMatchSnapshot();
+  });
+
+  test('emitMermaid with fullNewTables matches snapshot', () => {
+    expect(emitMermaid(result, { ...opts, fullNewTables: true })).toMatchSnapshot();
+  });
+
+  test('emitMermaid with hideUnchangedPk matches snapshot', () => {
+    expect(emitMermaid(result, { ...opts, hideUnchangedPk: true })).toMatchSnapshot();
+  });
+
+  test('emits a bare erDiagram block, not a fenced one', () => {
+    const out = emitMermaid(result, opts);
+    expect(out).not.toContain('```');
+    expect(out).toMatch(/^erDiagram$/m);
+  });
+
+  test('header lines before erDiagram are %% comments or blank', () => {
+    const lines = emitMermaid(result, opts).split('\n');
+    const header = lines.slice(0, lines.indexOf('erDiagram'));
+    expect(header.length).toBeGreaterThan(0);
+    for (const line of header) expect(line).toMatch(/^(%%|$)/);
+  });
+
+  test('summary encodes counts as category / action / count', () => {
+    const out = emitMermaid(result, opts);
+    expect(out).toContain('Tables added "1"');
+    expect(out).toContain('Tables removed "1"');
+    expect(out).toContain('Tables modified "4"');
+  });
+
+  test('summary omits categories that did not change', () => {
+    const tableOnly = diff(`Table t { id int [pk] }`, `Table t { id int [pk]
+  name varchar(50) }`);
+    const out = emitMermaid(tableOnly, opts);
+    expect(out).not.toContain('Refs added');
+    expect(out).not.toContain('Enums added');
+  });
+
+  test('marker prefixes carry over from the dbml view', () => {
+    const out = emitMermaid(result, opts);
+    expect(out).toContain('"NEW · dbo.PlanKind"');
+  });
+
+  test('changed enums render as entities marked (enum)', () => {
+    const before = `Enum status {
+  active
+}
+Table t { id int [pk] }`;
+    const after = `Enum status {
+  active
+  archived
+}
+Table t { id int [pk] }`;
+    const out = emitMermaid(diff(before, after), opts);
+    expect(out).toMatch(/"MOD · .*status \(enum\)"/);
+    expect(out).toContain('value archived "ADDED"');
+  });
+});
+
+// The emitted text is never validated against a real mermaid parser in CI (no
+// mermaid devDependency - see CONTRIBUTING.md). These invariants stand in for
+// it: they encode the grammar limits measured against mermaid 11.16.0, so a
+// sanitiser regression fails here instead of in someone's PR comment.
+describe('emitMermaid grammar invariants', () => {
+  const IDENT = String.raw`[\p{L}_][\p{L}\p{N}_\-\[\](),]*`;
+  const ENTITY_OPEN = /^ {2}"[^"]+" \{$/u;
+  const ATTR = new RegExp(String.raw`^ {4}${IDENT} ${IDENT}( PK| FK| UK)?( "[^"]*")?$`, 'u');
+
+  /** Assert every line is legal mermaid erDiagram per the measured grammar. */
+  const assertLegal = (out) => {
+    let inEntity = false;
+    for (const line of out.split('\n')) {
+      // A bare `%%` is not a comment to mermaid: the comment stripper matches
+      // `%%[^\n]+`, so an empty one survives cleanup, reaches the grammar, and
+      // takes the whole diagram down. Use a blank line to separate instead.
+      expect(line).not.toBe('%%');
+      if (line === '' || line.startsWith('%%') || line === 'erDiagram') continue;
+      if (!inEntity) {
+        expect(line).toMatch(ENTITY_OPEN);
+        inEntity = true;
+      } else if (line === '  }') {
+        inEntity = false;
+      } else {
+        expect(line).toMatch(ATTR);
+      }
+    }
+    expect(inEntity).toBe(false);
+  };
+
+  const opts = { oldLabel: 'v1.dbml', newLabel: 'v2.dbml', date: DATE };
+
+  test('fixture output is legal in every flag combination', () => {
+    const result = diff(v1, v2);
+    assertLegal(emitMermaid(result, opts));
+    assertLegal(emitMermaid(result, { ...opts, fullNewTables: true }));
+    assertLegal(emitMermaid(result, { ...opts, hideUnchangedPk: true }));
+  });
+
+  test('multi-word column type collapses to a single token', () => {
+    const out = emitMermaid(diff(`Table t { id int [pk] }`, `Table t { id int [pk]
+  c "character varying(50)" }`), opts);
+    expect(out).toContain('character_varying(50) c__ADDED');
+    assertLegal(out);
+  });
+
+  test('column name with a space collapses to a single token', () => {
+    const out = emitMermaid(diff(`Table t { id int [pk] }`, `Table t { id int [pk]
+  "my col" int }`), opts);
+    expect(out).toContain('int my_col__ADDED');
+    assertLegal(out);
+  });
+
+  test('identifier starting with a digit gains a leading underscore', () => {
+    const out = emitMermaid(diff(`Table t { id int [pk] }`, `Table t { id int [pk]
+  "2fa" bool }`), opts);
+    expect(out).toContain('bool _2fa__ADDED');
+    assertLegal(out);
+  });
+
+  test('double quote in a note is folded to a single quote', () => {
+    const out = emitMermaid(diff(`Table a { id int [pk] }`, `Table a { id int [pk] }
+Table t {
+  id int [pk]
+  c int [note: 'say "hi"']
+}`), { ...opts, fullNewTables: true });
+    expect(out).toContain(`"say 'hi'"`);
+    expect(out).not.toMatch(/"[^"\n]*"[^"\n]*"/);
+    assertLegal(out);
+  });
+
+  test('middot in a table name survives inside the quoted entity name', () => {
+    const out = emitMermaid(diff(`Table a { id int [pk] }`, `Table a { id int [pk] }
+Table "od·d" { id int [pk] }`), opts);
+    expect(out).toContain('"NEW · od·d"');
+    assertLegal(out);
   });
 });

@@ -26,6 +26,16 @@ features follow that grain - extend the model, teach the diff, render it.
 
 `main` is protected: the test suite must pass on Node 18 and 20. Thats it - for now.
 
+## What CI does and does not check
+
+`--format dbml` output is parsed straight back through `@dbml/core` in the tests, which proves dbdiagram.io will accept it. There is no equivalent check for `--format mermaid`: CI never feeds the output to Mermaid itself.
+
+That is deliberate. Doing it means taking `mermaid` as a devDependency, which drags in d3, cytoscape and friends - a heavy tree for a project with one runtime dependency and one devDependency. And it would prove less than it looks: GitHub and Azure DevOps each pin their own Mermaid version, so a green check against ours is evidence their renderers agree, not a guarantee.
+
+Instead the grammar rules the emitter depends on are asserted directly, in the `emitMermaid grammar invariants` block in `__tests__/emit.test.js`. Those rules were measured against mermaid 11.16.0: entity names must be quoted and cannot contain `"`; attribute types and names must be a single bare token starting with a letter; comments cannot contain `"`; and a bare `%%` line is not a comment (Mermaid's stripper matches `%%[^\n]+`, so an empty one reaches the grammar and fails the whole diagram).
+
+If you touch the Mermaid emitter, the honest check is still to paste the output into a real renderer and look at it. The invariants catch a regression against the rules we know; they cannot catch a rule we never learned.
+
 ## Commit messages
 
 Please use [Conventional Commits](https://www.conventionalcommits.org/), enforced by

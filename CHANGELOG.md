@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `--format mermaid` emits a Mermaid `erDiagram` block, rendering the same diff as `--format dbml` in a notation that GitHub and Azure DevOps render natively - nothing for the reader to install. The block is emitted bare, without a markdown code fence, so `-o diff.mmd` writes a usable file; wrap it yourself to embed it. Also exported programmatically as `emitMermaid()`. (#3)
+
+### Changed
+
+- `--full-new-tables` and `--hide-unchanged-pk` now apply to both visual formats (`--format dbml` and `--format mermaid`) instead of `--format dbml` alone. `--colors` remains dbml-only: it emits dbdiagram `headercolor` annotations, which Mermaid has no equivalent for. The warning printed when a flag is ignored names the formats it does apply to. (#3)
+
 ## [1.0.0] - 2026-07-13
 
 First stable release. The public API is now covered by Semantic Versioning: the CLI flags, exit codes, the stdout/stderr split, and the programmatic `diff()` / `emit*()` surface will not change incompatibly without a major version bump. See the stability contract in `docs/stability.md` for exactly what is and is not covered.

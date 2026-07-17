@@ -71,6 +71,17 @@ describe('CLI', () => {
     }
   });
 
+  test('--format mermaid emits a bare erDiagram block on stdout (#3)', () => {
+    const res = run(fixture('v1.dbml'), fixture('v2.dbml'), '--format', 'mermaid');
+    expect(res.status).toBe(1);
+    expect(res.stdout).toMatch(/^erDiagram$/m);
+    // No markdown fence: wrapping is the embedder's job, and a fence would make
+    // `-o diff.mmd` write an unusable .mmd file.
+    expect(res.stdout).not.toContain('```');
+    // Counts still go to stderr, not stdout.
+    expect(res.stderr).toContain('added: 1, removed: 1, modified: 4');
+  });
+
   test('invalid --format: exit code 2', () => {
     const res = run(fixture('v1.dbml'), fixture('v2.dbml'), '--format', 'yaml');
     expect(res.status).toBe(2);
@@ -243,12 +254,32 @@ describe('CLI', () => {
     expect(() => JSON.parse(res.stdout)).not.toThrow();
     // ...but a warning tells the user the flag was ignored.
     expect(res.stderr).toContain('--colors');
-    expect(res.stderr).toContain('apply only to --format dbml');
+    expect(res.stderr).toContain('applies only to --format dbml');
   });
 
   test('does not warn when a dbml-only flag is used with --format dbml', () => {
     const res = run(fixture('v1.dbml'), fixture('v2.dbml'), '--format', 'dbml', '--colors');
-    expect(res.stderr).not.toContain('apply only to --format dbml');
+    expect(res.stderr).not.toContain('applies only to --format dbml');
+  });
+
+  test('--colors is still dbml-only: warns with --format mermaid (#3)', () => {
+    const res = run(fixture('v1.dbml'), fixture('v2.dbml'), '--format', 'mermaid', '--colors');
+    expect(res.stderr).toContain('--colors applies only to --format dbml');
+    expect(res.stderr).toContain('ignored with --format mermaid');
+  });
+
+  test('density flags apply to --format mermaid without warning (#3)', () => {
+    const res = run(fixture('v1.dbml'), fixture('v2.dbml'), '--format', 'mermaid',
+      '--full-new-tables', '--hide-unchanged-pk');
+    expect(res.stderr).not.toContain('apply only to');
+    // The flags actually took effect rather than being quietly dropped.
+    expect(res.stdout).not.toContain('unchanged columns omitted');
+    expect(res.stdout).toContain('NEW TABLE');
+  });
+
+  test('density flags still warn with a non-visual format', () => {
+    const res = run(fixture('v1.dbml'), fixture('v2.dbml'), '--format', 'json', '--hide-unchanged-pk');
+    expect(res.stderr).toContain('apply only to --format dbml or --format mermaid');
   });
 
   describe('arg-validation guards (#86)', () => {

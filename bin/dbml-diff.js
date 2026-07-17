@@ -4,7 +4,7 @@
 const fs = require('fs');
 const { parseSchema } = require('../lib/parse');
 const { diffSchemas, changeCounts } = require('../lib/diff');
-const { emitText, emitJson, emitDbml, emitMigration } = require('../lib/emit');
+const { emitText, emitJson, emitDbml, emitMermaid, emitMigration } = require('../lib/emit');
 const pkg = require('../package.json');
 
 const USAGE = `Usage: dbml-diff <old.dbml> <new.dbml> [options]
@@ -12,14 +12,17 @@ const USAGE = `Usage: dbml-diff <old.dbml> <new.dbml> [options]
 Structurally diff two DBML schema files.
 
 Options:
-  --format <text|json|dbml>   output format (default: text)
-  --full-new-tables           in dbml format, emit full column lists for
+  --format <text|json|dbml|mermaid>
+                              output format (default: text). dbml renders in
+                              dbdiagram.io; mermaid emits an erDiagram block
+                              that renders natively in GitHub / Azure DevOps
+  --full-new-tables           in a visual format, emit full column lists for
                               added tables (default: stub to PK + note with
                               column count)
   --colors                    in dbml format, use headercolor annotations
                               (requires dbdiagram paid tier to render;
                               name prefixes are always emitted regardless)
-  --hide-unchanged-pk         in dbml format, drop the unchanged primary-key
+  --hide-unchanged-pk         in a visual format, drop the unchanged primary-key
                               row from modified tables (leaner delta-only view)
   --migrate                   emit a T-SQL migration script (ALTER/CREATE DDL)
                               instead of a diff; DROP and heuristic RENAME
@@ -42,6 +45,10 @@ Examples:
 
   dbml-diff old.dbml new.dbml --format dbml -o diff.dbml
       visual diff - paste diff.dbml into https://dbdiagram.io
+
+  dbml-diff old.dbml new.dbml --format mermaid -o diff.mmd
+      visual diff as an erDiagram block - wrap it in a mermaid code fence to
+      render it in a GitHub or Azure DevOps comment
 
   dbml-diff old.dbml new.dbml --format json
       machine-readable result on stdout (counts stay on stderr)
@@ -123,19 +130,24 @@ function main() {
   if (opts.migrate && opts.formatGiven) {
     fail(`dbml-diff: --migrate cannot be combined with --format`);
   }
-  if (!opts.migrate && !['text', 'json', 'dbml'].includes(opts.format)) {
-    fail(`dbml-diff: invalid --format "${opts.format}" (expected text, json, or dbml)`);
+  if (!opts.migrate && !['text', 'json', 'dbml', 'mermaid'].includes(opts.format)) {
+    fail(`dbml-diff: invalid --format "${opts.format}" (expected text, json, dbml, or mermaid)`);
   }
-  // --full-new-tables, --colors, and --hide-unchanged-pk only affect dbml output.
-  // Warn (do not fail) when they are set with an incompatible format so a
-  // scripting mistake is visible instead of silently ignored.
-  const dbmlOnly = [];
-  if (opts.fullNewTables) dbmlOnly.push('--full-new-tables');
-  if (opts.colors) dbmlOnly.push('--colors');
-  if (opts.hideUnchangedPk) dbmlOnly.push('--hide-unchanged-pk');
-  if (dbmlOnly.length && (opts.migrate || opts.format !== 'dbml')) {
-    const ctx = opts.migrate ? '--migrate' : `--format ${opts.format}`;
-    process.stderr.write(`dbml-diff: ${dbmlOnly.join(', ')} apply only to --format dbml; ignored with ${ctx}\n`);
+  // --full-new-tables and --hide-unchanged-pk are view-density knobs that mean
+  // the same thing in either visual format; --colors is a dbdiagram headercolor
+  // annotation with no mermaid equivalent, so it stays dbml-only. Warn (do not
+  // fail) when a flag is set with a format that ignores it, so a scripting
+  // mistake is visible instead of silently dropped.
+  const ctx = opts.migrate ? '--migrate' : `--format ${opts.format}`;
+  const isVisual = !opts.migrate && ['dbml', 'mermaid'].includes(opts.format);
+  const viewFlags = [];
+  if (opts.fullNewTables) viewFlags.push('--full-new-tables');
+  if (opts.hideUnchangedPk) viewFlags.push('--hide-unchanged-pk');
+  if (viewFlags.length && !isVisual) {
+    process.stderr.write(`dbml-diff: ${viewFlags.join(', ')} apply only to --format dbml or --format mermaid; ignored with ${ctx}\n`);
+  }
+  if (opts.colors && (opts.migrate || opts.format !== 'dbml')) {
+    process.stderr.write(`dbml-diff: --colors applies only to --format dbml; ignored with ${ctx}\n`);
   }
 
   const [oldFile, newFile] = opts.files;
@@ -153,6 +165,13 @@ function main() {
       newLabel: newFile,
       fullNewTables: opts.fullNewTables,
       colors: opts.colors,
+      hideUnchangedPk: opts.hideUnchangedPk,
+    });
+  } else if (opts.format === 'mermaid') {
+    out = emitMermaid(result, {
+      oldLabel: oldFile,
+      newLabel: newFile,
+      fullNewTables: opts.fullNewTables,
       hideUnchangedPk: opts.hideUnchangedPk,
     });
   } else out = emitText(result);
