@@ -33,7 +33,7 @@ npm i -g dbml-diff    # or keep using npx
 dbml-diff <old.dbml> <new.dbml> [options]
 ```
 
-The default output is a readable text summary. `--format json` gives a machine-readable result, and `--format dbml` gives the annotated document for the visual diff. Diff output goes to stdout (or the `-o` file); the counts summary goes to stderr, so stdout stays pipeable. Exit codes are `0` (identical), `1` (differences found), and `2` (error), which makes it a drop-in CI gate.
+The default output is a readable text summary. `--format json` gives a machine-readable result, and the visual formats give a diagram of the diff: `--format dbml` for dbdiagram.io, `--format d2` for D2 source, `--format svg` for a locally-rendered SVG. Diff output goes to stdout (or the `-o` file); the counts summary goes to stderr, so stdout stays pipeable. Exit codes are `0` (identical), `1` (differences found), and `2` (error), which makes it a drop-in CI gate.
 
 See the [CLI reference](docs/cli.md) for the full flag list, output streams, exit codes, and parsing behaviour.
 
