@@ -60,7 +60,7 @@ emitMigration(result, { oldLabel: 'v1', newLabel: 'v2' });    // T-SQL migration
 ```
 
 - `emitDbml` options: `oldLabel`, `newLabel`, `colors`, `fullNewTables`, `hideUnchangedPk` (the last three mirror the matching CLI flags).
-- `emitD2` options: `oldLabel`, `newLabel`, `fullNewTables`, `hideUnchangedPk`. Returns D2 source: `sql_table` shapes in a grid, headers filled by state. Pure text, no dependency on the D2 renderer. See [visual-diff.md](visual-diff.md#d2-and-svg-format-d2-format-svg).
+- `emitD2` options: `oldLabel`, `newLabel`, `fullNewTables`, `hideUnchangedPk`. Returns D2 source: `sql_table` shapes in a grid, headers filled by state. Pure text, no dependency on the D2 renderer. See [visual-diff.md](visual-diff.md#d2-and-svg---format-d2---format-svg).
 - `emitMigration` options: `oldLabel`, `newLabel`. See [migration.md](migration.md) for what the script contains.
 
 ## renderSvg(result, opts?)
