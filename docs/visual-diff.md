@@ -1,6 +1,6 @@
-# Visual diff conventions (`--format dbml`)
+# Visual diff conventions (`--format dbml`, `--format d2`, `--format svg`)
 
-`--format dbml` emits an annotated DBML document that renders as a visual diff in [dbdiagram.io](https://dbdiagram.io/). It shows only what changed, with the markers below. For a quick start see the [README](../README.md).
+The visual formats render the diff as a diagram showing only what changed. `--format dbml` emits an annotated DBML document for [dbdiagram.io](https://dbdiagram.io/), using the markers below; `--format d2` and `--format svg` render the same diff through [D2](https://d2lang.com) and are covered in [D2 and SVG](#d2-and-svg---format-d2---format-svg). For a quick start see the [README](../README.md).
 
 ## Markers
 
