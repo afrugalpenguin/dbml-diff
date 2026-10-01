@@ -40,7 +40,8 @@
     "docs:cli": "node scripts/build-cli-docs.js"
   },
   "dependencies": {
-    "@dbml/core": "10.1.1"
+    "@dbml/core": "10.1.1",
+    "pako": "3.0.2"
   },
   "peerDependencies": {
     "@terrastruct/d2": "^0.1.33"

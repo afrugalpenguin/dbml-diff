@@ -6,6 +6,7 @@ const { parseSchema } = require('../lib/parse');
 const { diffSchemas, changeCounts } = require('../lib/diff');
 const { emitText, emitJson, emitDbml, emitD2, emitMigration } = require('../lib/emit');
 const { renderSvg } = require('../lib/render');
+const { buildEmbedUrl, buildIframe, THEMES, DEFAULT_HEIGHT } = require('../lib/embed');
 const pkg = require('../package.json');
 
 const USAGE = `Usage: dbml-diff <old.dbml> <new.dbml> [options]
@@ -13,15 +14,22 @@ const USAGE = `Usage: dbml-diff <old.dbml> <new.dbml> [options]
 Structurally diff two DBML schema files.
 
 Options:
-  --format <text|json|dbml|d2|svg>
+  --format <text|json|dbml|d2|svg|url|iframe>
                               output format (default: text). dbml renders in
                               dbdiagram.io; d2 emits D2 diagram source; svg
                               renders that D2 locally to a self-contained SVG
-                              (needs the optional @terrastruct/d2 package)
+                              (needs the optional @terrastruct/d2 package);
+                              url prints a dbdiagram.io embed link carrying
+                              the dbml diff; iframe wraps that link in an
+                              <iframe> tag for a web page
+  --compress                  in url/iframe format, deflate the payload
+                              (pako: prefix) for a shorter link
+  --theme <dark>              in url/iframe format, render the dark theme
+  --embed-height <px>         in iframe format, iframe height (default: 700)
   --full-new-tables           in a visual format, emit full column lists for
                               added tables (default: stub to PK + note with
                               column count)
-  --colors                    in dbml format, use headercolor annotations
+  --colors                    in dbml/url/iframe format, use headercolor annotations
                               (requires dbdiagram paid tier to render;
                               name prefixes are always emitted regardless)
   --hide-unchanged-pk         in a visual format, drop the unchanged primary-key
@@ -51,11 +59,16 @@ Examples:
   dbml-diff old.dbml new.dbml --format svg -o diff.svg
       render the diff locally to a self-contained SVG (offline)
 
+  dbml-diff old.dbml new.dbml --format iframe --compress
+      <iframe> embedding the dbdiagram.io visual diff in a web page
+
   dbml-diff old.dbml new.dbml --format json
       machine-readable result on stdout (counts stay on stderr)
 
   dbml-diff old.dbml new.dbml --migrate -o up.sql
       generate a T-SQL migration script (review before running)`;
+
+const FORMATS = ['text', 'json', 'dbml', 'd2', 'svg', 'url', 'iframe'];
 
 function fail(msg) {
   process.stderr.write(`${msg}\n`);
@@ -63,7 +76,7 @@ function fail(msg) {
 }
 
 function parseArgs(argv) {
-  const opts = { format: 'text', fullNewTables: false, colors: false, hideUnchangedPk: false, migrate: false, includeNotes: false, output: null, files: [] };
+  const opts = { format: 'text', fullNewTables: false, colors: false, hideUnchangedPk: false, migrate: false, includeNotes: false, compress: false, theme: null, embedHeight: null, output: null, files: [] };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === '-h' || a === '--help') opts.help = true;
@@ -77,6 +90,21 @@ function parseArgs(argv) {
     else if (a === '--hide-unchanged-pk') opts.hideUnchangedPk = true;
     else if (a === '--migrate') opts.migrate = true;
     else if (a === '--include-notes') opts.includeNotes = true;
+    else if (a === '--compress') opts.compress = true;
+    else if (a === '--theme') {
+      opts.theme = argv[++i];
+      if (opts.theme === undefined) fail(`--theme requires a value\n\n${USAGE}`);
+      if (!THEMES.includes(opts.theme)) {
+        fail(`dbml-diff: invalid --theme "${opts.theme}" (expected ${THEMES.join(', ')})`);
+      }
+    } else if (a === '--embed-height') {
+      const v = argv[++i];
+      if (v === undefined) fail(`--embed-height requires a value\n\n${USAGE}`);
+      if (!/^[1-9][0-9]*$/.test(v)) {
+        fail(`dbml-diff: invalid --embed-height "${v}" (expected a positive whole number of pixels)`);
+      }
+      opts.embedHeight = Number(v);
+    }
     else if (a === '-o' || a === '--output') {
       opts.output = argv[++i];
       if (opts.output === undefined) fail(`${a} requires a value\n\n${USAGE}`);
@@ -131,8 +159,8 @@ async function main() {
   if (opts.migrate && opts.formatGiven) {
     fail(`dbml-diff: --migrate cannot be combined with --format`);
   }
-  if (!opts.migrate && !['text', 'json', 'dbml', 'd2', 'svg'].includes(opts.format)) {
-    fail(`dbml-diff: invalid --format "${opts.format}" (expected text, json, dbml, d2, or svg)`);
+  if (!opts.migrate && !FORMATS.includes(opts.format)) {
+    fail(`dbml-diff: invalid --format "${opts.format}" (expected ${FORMATS.slice(0, -1).join(', ')}, or ${FORMATS[FORMATS.length - 1]})`);
   }
   // --full-new-tables and --hide-unchanged-pk are view-density knobs shared by
   // every visual format (dbml, d2, svg). --colors is a dbdiagram headercolor
@@ -141,15 +169,27 @@ async function main() {
   // that ignores it, so a scripting mistake is visible instead of silently
   // dropped.
   const ctx = opts.migrate ? '--migrate' : `--format ${opts.format}`;
-  const isVisual = !opts.migrate && ['dbml', 'd2', 'svg'].includes(opts.format);
+  const isVisual = !opts.migrate && ['dbml', 'd2', 'svg', 'url', 'iframe'].includes(opts.format);
+  // url and iframe carry the dbml emitter output, so the dbml-only flags apply.
+  const isDbmlBased = !opts.migrate && ['dbml', 'url', 'iframe'].includes(opts.format);
+  const isEmbed = !opts.migrate && ['url', 'iframe'].includes(opts.format);
   const viewFlags = [];
   if (opts.fullNewTables) viewFlags.push('--full-new-tables');
   if (opts.hideUnchangedPk) viewFlags.push('--hide-unchanged-pk');
   if (viewFlags.length && !isVisual) {
-    process.stderr.write(`dbml-diff: ${viewFlags.join(', ')} apply only to a visual format (--format dbml, d2, or svg); ignored with ${ctx}\n`);
+    process.stderr.write(`dbml-diff: ${viewFlags.join(', ')} apply only to a visual format (--format dbml, d2, svg, url, or iframe); ignored with ${ctx}\n`);
   }
-  if (opts.colors && (opts.migrate || opts.format !== 'dbml')) {
-    process.stderr.write(`dbml-diff: --colors applies only to --format dbml; ignored with ${ctx}\n`);
+  if (opts.colors && !isDbmlBased) {
+    process.stderr.write(`dbml-diff: --colors applies only to --format dbml, url, or iframe; ignored with ${ctx}\n`);
+  }
+  const embedFlags = [];
+  if (opts.compress) embedFlags.push('--compress');
+  if (opts.theme) embedFlags.push('--theme');
+  if (embedFlags.length && !isEmbed) {
+    process.stderr.write(`dbml-diff: ${embedFlags.join(', ')} ${embedFlags.length > 1 ? 'apply' : 'applies'} only to --format url or iframe; ignored with ${ctx}\n`);
+  }
+  if (opts.embedHeight !== null && (opts.migrate || opts.format !== 'iframe')) {
+    process.stderr.write(`dbml-diff: --embed-height applies only to --format iframe; ignored with ${ctx}\n`);
   }
 
   const [oldFile, newFile] = opts.files;
@@ -170,6 +210,15 @@ async function main() {
   } else if (opts.format === 'json') out = emitJson(result);
   else if (opts.format === 'dbml') out = emitDbml(result, { ...view, colors: opts.colors });
   else if (opts.format === 'd2') out = emitD2(result, view);
+  else if (isEmbed) {
+    const url = buildEmbedUrl(emitDbml(result, { ...view, colors: opts.colors }), {
+      compress: opts.compress,
+      theme: opts.theme,
+    });
+    out = opts.format === 'iframe'
+      ? buildIframe(url, { height: opts.embedHeight === null ? DEFAULT_HEIGHT : opts.embedHeight })
+      : url;
+  }
   else if (opts.format === 'svg') {
     try {
       out = await renderSvg(result, view);
