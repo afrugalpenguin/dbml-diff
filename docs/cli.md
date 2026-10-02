@@ -15,15 +15,22 @@ Usage: dbml-diff <old.dbml> <new.dbml> [options]
 Structurally diff two DBML schema files.
 
 Options:
-  --format <text|json|dbml|d2|svg>
+  --format <text|json|dbml|d2|svg|url|iframe>
                               output format (default: text). dbml renders in
                               dbdiagram.io; d2 emits D2 diagram source; svg
                               renders that D2 locally to a self-contained SVG
-                              (needs the optional @terrastruct/d2 package)
+                              (needs the optional @terrastruct/d2 package);
+                              url prints a dbdiagram.io embed link carrying
+                              the dbml diff; iframe wraps that link in an
+                              <iframe> tag for a web page
+  --compress                  in url/iframe format, deflate the payload
+                              (pako: prefix) for a shorter link
+  --theme <dark>              in url/iframe format, render the dark theme
+  --embed-height <px>         in iframe format, iframe height (default: 700)
   --full-new-tables           in a visual format, emit full column lists for
                               added tables (default: stub to PK + note with
                               column count)
-  --colors                    in dbml format, use headercolor annotations
+  --colors                    in dbml/url/iframe format, use headercolor annotations
                               (requires dbdiagram paid tier to render;
                               name prefixes are always emitted regardless)
   --hide-unchanged-pk         in a visual format, drop the unchanged primary-key
@@ -52,6 +59,9 @@ Examples:
 
   dbml-diff old.dbml new.dbml --format svg -o diff.svg
       render the diff locally to a self-contained SVG (offline)
+
+  dbml-diff old.dbml new.dbml --format iframe --compress
+      <iframe> embedding the dbdiagram.io visual diff in a web page
 
   dbml-diff old.dbml new.dbml --format json
       machine-readable result on stdout (counts stay on stderr)
