@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `--format url` prints a [dbdiagram.io embed link](https://docs.dbdiagram.io/dbml-in-link-diagram) that renders the visual diff with no account and no server-side storage: the `--format dbml` output travels Base64-encoded in the URL fragment, which browsers never send to the server. `--format iframe` wraps that link in a single `<iframe>` tag, ready to paste into a web page such as a knowledge-base article. `--compress` deflates the payload (`pako:` prefix) for a shorter link, `--theme dark` selects the dark theme, and `--embed-height <px>` sets the iframe height (default 700). The dbml emitter flags (`--colors`, `--full-new-tables`, `--hide-unchanged-pk`, `--include-notes`) apply unchanged. An unknown `--theme` value exits `2`. Adds `pako` (pinned) as a dependency.
+
 ## [1.1.0] - 2026-08-28
 
 ### Added

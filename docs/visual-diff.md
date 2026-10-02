@@ -1,6 +1,6 @@
 # Visual diff conventions (`--format dbml`, `--format d2`, `--format svg`)
 
-The visual formats render the diff as a diagram showing only what changed. `--format dbml` emits an annotated DBML document for [dbdiagram.io](https://dbdiagram.io/), using the markers below; `--format d2` and `--format svg` render the same diff through [D2](https://d2lang.com) and are covered in [D2 and SVG](#d2-and-svg---format-d2---format-svg). For a quick start see the [README](../README.md).
+The visual formats render the diff as a diagram showing only what changed. `--format dbml` emits an annotated DBML document for [dbdiagram.io](https://dbdiagram.io/), using the markers below; `--format d2` and `--format svg` render the same diff through [D2](https://d2lang.com) and are covered in [D2 and SVG](#d2-and-svg---format-d2---format-svg). `--format url` and `--format iframe` carry the `--format dbml` diff in a dbdiagram.io embed link, covered in [Embedding in a web page](#embedding-in-a-web-page---format-url---format-iframe). For a quick start see the [README](../README.md).
 
 ## Markers
 
@@ -43,6 +43,27 @@ The per-ref and per-group detail - which tables changed and how - lives in `--fo
 2. Open [dbdiagram.io](https://dbdiagram.io/d) and create a new diagram.
 3. Paste the contents of `diff.dbml` into the editor.
 4. The diagram now shows only what changed: scan for the `NEW ·` / `MOD ·` / `DEL ·` tables, and hover the annotated columns to read the change notes. With `--colors` (paid tier) the table headers are colour-coded too.
+
+## Embedding in a web page (`--format url`, `--format iframe`)
+
+dbdiagram.io can render DBML carried in a link, with no account and nothing saved on its servers. `--format url` prints that link for the `--format dbml` diff, and `--format iframe` wraps it in a tag you can paste into any page that accepts HTML (a help-centre or knowledge-base article, a wiki, an internal portal):
+
+```sh
+dbml-diff old.dbml new.dbml --format iframe --compress -o diff.html
+```
+
+```html
+<iframe src="https://dbdiagram.io/embed#c=pako%3AeJyt..." width="100%" height="700" style="border:0" loading="lazy" allowfullscreen></iframe>
+```
+
+- `--compress` deflates the diff before encoding (the `pako:` prefix), which makes the link much shorter. Use it for anything beyond a small diff.
+- `--theme dark` renders the dark theme. dbdiagram recognises no other theme value, so any other value is an error.
+- `--embed-height <px>` sets the iframe height (default `700`).
+- `--colors`, `--full-new-tables`, `--hide-unchanged-pk` and `--include-notes` shape the embedded diff exactly as they shape `--format dbml`.
+
+The diagram travels in the URL fragment (the part after `#`), which browsers do not send to dbdiagram's server, so there is no server-side length limit. Browsers cap URLs at around 2 MB.
+
+**Access control:** the link *is* the schema. Anyone who holds it, or can view the page it is embedded in, can decode and read every table and column in the diff. The access control of the page you embed it in is the only boundary, so do not put it on a public page unless the schema itself can be public.
 
 ## D2 and SVG (`--format d2`, `--format svg`)
 
