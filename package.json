@@ -40,7 +40,7 @@
     "docs:cli": "node scripts/build-cli-docs.js"
   },
   "dependencies": {
-    "@dbml/core": "10.1.1",
+    "@dbml/core": "10.2.0",
     "pako": "3.0.2"
   },
   "peerDependencies": {
