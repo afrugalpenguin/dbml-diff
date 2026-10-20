@@ -7,9 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-10-20
+
 ### Added
 
-- `--format url` prints a [dbdiagram.io embed link](https://docs.dbdiagram.io/dbml-in-link-diagram) that renders the visual diff with no account and no server-side storage: the `--format dbml` output travels Base64-encoded in the URL fragment, which browsers never send to the server. `--format iframe` wraps that link in a single `<iframe>` tag, ready to paste into a web page such as a knowledge-base article. `--compress` deflates the payload (`pako:` prefix) for a shorter link, `--theme dark` selects the dark theme, and `--embed-height <px>` sets the iframe height (default 700). The dbml emitter flags (`--colors`, `--full-new-tables`, `--hide-unchanged-pk`, `--include-notes`) apply unchanged. An unknown `--theme` value exits `2`. Adds `pako` (pinned) as a dependency.
+- `--format url` prints a [dbdiagram.io embed link](https://docs.dbdiagram.io/dbml-in-link-diagram) that renders the visual diff with no account and no server-side storage: the `--format dbml` output travels Base64-encoded in the URL fragment, which browsers never send to the server. `--format iframe` wraps that link in a single `<iframe>` tag, ready to paste into a web page such as a knowledge-base article. `--compress` deflates the payload (`pako:` prefix) for a shorter link, `--theme dark` selects the dark theme, and `--embed-height <px>` sets the iframe height (default 700). The dbml emitter flags (`--colors`, `--full-new-tables`, `--hide-unchanged-pk`, `--include-notes`) apply unchanged. An unknown `--theme` value exits `2`. Adds `pako` (pinned) as a dependency. (#128)
+
+### Changed
+
+- `@dbml/core` upgraded from 10.1.1 to 10.3.1, a minor bump of the pinned parser; the emitted diff is unchanged for every schema the test suite covers. (#127, #129)
+- The package homepage is now [dbml-diff.dev](https://dbml-diff.dev), which runs the diff in the browser with no install. (#132)
 
 ## [1.1.0] - 2026-08-28
 
