@@ -10,6 +10,7 @@
 - The stdout/stderr split: diff or migration output goes to stdout (or the `-o` file); the counts summary and warnings go to stderr.
 - That destructive (`DROP`) and heuristic (`RENAME`) statements in `--migrate` output are emitted commented out, so a straight run of that output is non-destructive.
 - The programmatic API: the exported `diff()` return shape documented in [api.md](api.md), and the signatures of `emitText()`, `emitJson()`, `emitDbml()`, `emitD2()`, `renderSvg()`, and `emitMigration()`.
+- The exported TypeScript types listed in [api.md](api.md#typescript). They describe the return shape and signatures above, so they follow the same rule: removing or narrowing a type or field is breaking; adding an optional field or a new type is not.
 
 ## Not covered (may change in a minor or patch)
 

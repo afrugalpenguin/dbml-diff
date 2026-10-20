@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "noEmit": true,
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "resolveJsonModule": true,
+    "types": [],
+    "paths": { "dbml-diff": ["./"] }
+  },
+  "files": ["typecheck/check.ts"]
+}
