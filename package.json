@@ -21,7 +21,7 @@
   "bugs": {
     "url": "https://github.com/afrugalpenguin/dbml-diff/issues"
   },
-  "homepage": "https://github.com/afrugalpenguin/dbml-diff#readme",
+  "homepage": "https://dbml-diff.dev",
   "main": "lib/index.js",
   "bin": {
     "dbml-diff": "bin/dbml-diff.js"
