@@ -3,8 +3,11 @@
 [![npm version](https://img.shields.io/npm/v/dbml-diff)](https://www.npmjs.com/package/dbml-diff)
 [![CI](https://github.com/afrugalpenguin/dbml-diff/actions/workflows/test.yml/badge.svg)](https://github.com/afrugalpenguin/dbml-diff/actions/workflows/test.yml)
 [![license](https://img.shields.io/npm/l/dbml-diff)](LICENSE)
+[![roadmap](https://img.shields.io/badge/roadmap-view-blue)](https://afrugalpenguin.github.io/dbml-diff/roadmap.html)
 
 Structurally diff two [DBML](https://dbml.dbdiagram.io/) schema files and emit the result as text, JSON, an annotated DBML document that renders as a **visual diff in [dbdiagram.io](https://dbdiagram.io/)**, or a **locally-rendered SVG** via [D2](https://d2lang.com).
+
+**Try it in your browser: [dbml-diff.dev](https://dbml-diff.dev)** - paste two DBML schemas and see the diff, migration and DBML output, no install needed.
 
 ```sh
 npx dbml-diff old.dbml new.dbml                              # readable text summary
