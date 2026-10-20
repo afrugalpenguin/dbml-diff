@@ -25,6 +25,8 @@ The visual diff shows *only what changed* - added, removed, and modified tables,
 
 <img src="docs/demo-diff.svg" alt="A rendered schema diff: tables prefixed NEW/MOD/DEL, changed columns suffixed and annotated, laid out in two columns" width="820">
 
+**Try it in your browser: [dbml-diff.dev](https://dbml-diff.dev)** - paste two DBML schemas and see the diff, migration and DBML output, no install needed.
+
 ## Install
 
 ```sh
