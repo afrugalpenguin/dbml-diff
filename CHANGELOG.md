@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-10-21
+
 ### Added
 
 - TypeScript declarations for the whole public API ship with the package (`lib/index.d.ts`, via the `types` field), so `import type { DiffResult } from 'dbml-diff'` works with no extra install. `DiffResult` covers every variant of the `diff()` / `emitJson()` result, including modified groups (`tablesAdded` / `tablesRemoved`), enum changes, and retargeted and unresolved refs; every exported function and its options are declared too. Types only: runtime behaviour and output are unchanged. `npm test` now also runs `tsc`, checking the declarations against the real `emitJson` output of fixtures that cover every variant. (#137)
