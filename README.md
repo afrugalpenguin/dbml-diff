@@ -68,6 +68,18 @@ console.log(emitText(result));
 
 See the [API reference](docs/api.md) for the full `diff()` return shape and emitter options.
 
+TypeScript declarations ship with the package, so the result is typed with no extra install. `DiffResult` covers every variant, including modified groups (`tablesAdded` / `tablesRemoved`, not `tables`) and all four ref kinds, and it is also the shape of `JSON.parse(emitJson(result))`:
+
+```ts
+import { diff, emitJson } from 'dbml-diff';
+import type { DiffResult } from 'dbml-diff';
+
+const result: DiffResult = diff(oldDbmlString, newDbmlString);
+const parsed = JSON.parse(emitJson(result)) as DiffResult;
+```
+
+See [TypeScript](docs/api.md#typescript) in the API reference for the full list of exported types.
+
 ## Documentation
 
 - [CLI reference](docs/cli.md) - flags, output streams, exit codes, parsing behaviour

@@ -1,0 +1,296 @@
+{
+  "tables": {
+    "added": [
+      {
+        "name": "dbo.PlanKind",
+        "columns": [
+          {
+            "name": "Id",
+            "type": "INT",
+            "notNull": true,
+            "pk": true,
+            "note": null
+          },
+          {
+            "name": "Title",
+            "type": "NVARCHAR(100)",
+            "notNull": true,
+            "pk": false,
+            "note": null
+          },
+          {
+            "name": "Sku",
+            "type": "NVARCHAR(50)",
+            "notNull": true,
+            "pk": false,
+            "note": null
+          }
+        ]
+      }
+    ],
+    "removed": [
+      {
+        "name": "dbo.LegacyLog",
+        "columns": [
+          {
+            "name": "Id",
+            "type": "INT",
+            "notNull": true,
+            "pk": true,
+            "note": null
+          },
+          {
+            "name": "Payload",
+            "type": "NVARCHAR(MAX)",
+            "notNull": false,
+            "pk": false,
+            "note": null
+          }
+        ]
+      }
+    ],
+    "modified": [
+      {
+        "name": "dbo.Shipments",
+        "columns": [
+          {
+            "name": "Id",
+            "type": "UNIQUEIDENTIFIER",
+            "notNull": true,
+            "pk": true,
+            "note": null
+          },
+          {
+            "name": "CarrierId",
+            "type": "UNIQUEIDENTIFIER",
+            "notNull": false,
+            "pk": false,
+            "note": null
+          },
+          {
+            "name": "Freight",
+            "type": "DECIMAL(24,8)",
+            "notNull": false,
+            "pk": false,
+            "note": null
+          }
+        ],
+        "columnsAdded": [],
+        "columnsRemoved": [
+          {
+            "name": "CarrierLabel",
+            "type": "NVARCHAR(200)",
+            "notNull": false,
+            "pk": false,
+            "note": null
+          },
+          {
+            "name": "CarrierTag",
+            "type": "NVARCHAR(50)",
+            "notNull": false,
+            "pk": false,
+            "note": null
+          }
+        ],
+        "columnsChanged": [],
+        "renames": []
+      },
+      {
+        "name": "dbo.Subscriptions",
+        "columns": [
+          {
+            "name": "Id",
+            "type": "UNIQUEIDENTIFIER",
+            "notNull": true,
+            "pk": true,
+            "note": null
+          },
+          {
+            "name": "CustomerId",
+            "type": "UNIQUEIDENTIFIER",
+            "notNull": true,
+            "pk": false,
+            "note": null
+          },
+          {
+            "name": "EnrolledOn",
+            "type": "DATETIME",
+            "notNull": false,
+            "pk": false,
+            "note": null
+          },
+          {
+            "name": "BillingCycleId",
+            "type": "INT",
+            "notNull": true,
+            "pk": false,
+            "note": null
+          },
+          {
+            "name": "PlanKindId",
+            "type": "INT",
+            "notNull": true,
+            "pk": false,
+            "note": null
+          }
+        ],
+        "columnsAdded": [
+          {
+            "name": "PlanKindId",
+            "type": "INT",
+            "notNull": true,
+            "pk": false,
+            "note": null
+          }
+        ],
+        "columnsRemoved": [],
+        "columnsChanged": [
+          {
+            "column": {
+              "name": "EnrolledOn",
+              "type": "DATETIME",
+              "notNull": false,
+              "pk": false,
+              "note": null
+            },
+            "changes": [
+              "was NOT NULL, now nullable"
+            ]
+          }
+        ],
+        "renames": []
+      },
+      {
+        "name": "dbo.SubscriptionLines",
+        "columns": [
+          {
+            "name": "Id",
+            "type": "UNIQUEIDENTIFIER",
+            "notNull": true,
+            "pk": true,
+            "note": null
+          },
+          {
+            "name": "GeoZoneId",
+            "type": "INT",
+            "notNull": false,
+            "pk": false,
+            "note": null
+          },
+          {
+            "name": "Surcharge",
+            "type": "DECIMAL(11,8)",
+            "notNull": false,
+            "pk": false,
+            "note": null
+          }
+        ],
+        "columnsAdded": [],
+        "columnsRemoved": [],
+        "columnsChanged": [
+          {
+            "column": {
+              "name": "Surcharge",
+              "type": "DECIMAL(11,8)",
+              "notNull": false,
+              "pk": false,
+              "note": null
+            },
+            "changes": [
+              "was NOT NULL, now nullable"
+            ]
+          }
+        ],
+        "renames": [
+          {
+            "from": {
+              "name": "ZoneId",
+              "type": "INT",
+              "notNull": false,
+              "pk": false,
+              "note": null
+            },
+            "to": {
+              "name": "GeoZoneId",
+              "type": "INT",
+              "notNull": false,
+              "pk": false,
+              "note": null
+            }
+          }
+        ]
+      },
+      {
+        "name": "dbo.Refunds",
+        "columns": [
+          {
+            "name": "Id",
+            "type": "UNIQUEIDENTIFIER",
+            "notNull": true,
+            "pk": true,
+            "note": null
+          },
+          {
+            "name": "TicketRef",
+            "type": "NVARCHAR(50)",
+            "notNull": true,
+            "pk": false,
+            "note": null
+          },
+          {
+            "name": "ProcessedOn",
+            "type": "BIGINT",
+            "notNull": false,
+            "pk": false,
+            "note": null
+          }
+        ],
+        "columnsAdded": [],
+        "columnsRemoved": [],
+        "columnsChanged": [
+          {
+            "column": {
+              "name": "ProcessedOn",
+              "type": "BIGINT",
+              "notNull": false,
+              "pk": false,
+              "note": null
+            },
+            "changes": [
+              "type DATETIME -> BIGINT"
+            ]
+          }
+        ],
+        "renames": []
+      }
+    ]
+  },
+  "enums": {
+    "added": [],
+    "removed": [],
+    "modified": []
+  },
+  "refs": {
+    "added": [],
+    "removed": [],
+    "retargeted": [],
+    "unresolved": []
+  },
+  "groups": {
+    "added": [
+      {
+        "name": "Lookups",
+        "tables": [
+          "dbo.PlanKind"
+        ]
+      }
+    ],
+    "removed": [],
+    "modified": []
+  },
+  "counts": {
+    "added": 1,
+    "removed": 1,
+    "modified": 4
+  }
+}

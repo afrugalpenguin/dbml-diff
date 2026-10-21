@@ -23,6 +23,7 @@
   },
   "homepage": "https://dbml-diff.dev",
   "main": "lib/index.js",
+  "types": "lib/index.d.ts",
   "bin": {
     "dbml-diff": "bin/dbml-diff.js"
   },
@@ -36,8 +37,9 @@
     "node": ">=22"
   },
   "scripts": {
-    "test": "jest",
-    "docs:cli": "node scripts/build-cli-docs.js"
+    "test": "jest && tsc -p tsconfig.types.json",
+    "docs:cli": "node scripts/build-cli-docs.js",
+    "types:fixtures": "node scripts/build-type-fixtures.js"
   },
   "dependencies": {
     "@dbml/core": "10.3.1",
@@ -53,6 +55,7 @@
   },
   "devDependencies": {
     "@terrastruct/d2": "^0.1.33",
-    "jest": "^30.4.2"
+    "jest": "^30.4.2",
+    "typescript": "^7.0.2"
   }
 }

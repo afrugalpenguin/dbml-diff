@@ -1,0 +1,28 @@
+{
+  "tables": {
+    "added": [],
+    "removed": [],
+    "modified": []
+  },
+  "enums": {
+    "added": [],
+    "removed": [],
+    "modified": []
+  },
+  "refs": {
+    "added": [],
+    "removed": [],
+    "retargeted": [],
+    "unresolved": []
+  },
+  "groups": {
+    "added": [],
+    "removed": [],
+    "modified": []
+  },
+  "counts": {
+    "added": 0,
+    "removed": 0,
+    "modified": 0
+  }
+}

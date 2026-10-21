@@ -1,0 +1,68 @@
+// Old side of the type-coverage fixture: diffed against types-b.dbml it
+// exercises every variant of the diff() result shape (see types.test.js).
+
+Enum status {
+  active
+  inactive
+}
+
+Enum legacy_flag {
+  yes
+  no
+}
+
+Table customers {
+  id int [pk]
+  name varchar [note: 'display name']
+  email varchar
+}
+
+Table products {
+  id int [pk]
+  title varchar
+}
+
+Table regions {
+  id int [pk]
+}
+
+Table suppliers {
+  id int [pk]
+}
+
+Table warehouses {
+  id int [pk]
+}
+
+Table old_audit {
+  id int [pk]
+  msg varchar
+}
+
+Table orders {
+  id int [pk]
+  customer_id int
+  product_id int
+  region_id int
+  supplier_id int
+  status status
+}
+
+Table invoices {
+  id int [pk]
+  order_id int
+}
+
+TableGroup sales {
+  customers
+  orders
+}
+
+TableGroup archive {
+  old_audit
+}
+
+Ref: orders.customer_id > customers.id
+Ref: orders.region_id > regions.id
+Ref: orders.supplier_id > suppliers.id
+Ref: invoices.order_id > orders.id

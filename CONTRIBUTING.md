@@ -42,4 +42,17 @@ feat(emit): add mermaid erDiagram output format
 Changing emitter output on purpose? Run `npx jest -u` and eyeball the snapshot
 diff before committing. Make sure it makes sense!
 
+## Types
+
+`npm test` runs Jest and then `tsc -p tsconfig.types.json`, which checks the
+hand-written declarations in `lib/index.d.ts` against the committed `emitJson`
+output in `typecheck/*.json`. A Jest test fails if those JSON files no longer
+match the live output.
+
+- Changed the `diff()` output on purpose? Run `npm run types:fixtures` to
+  regenerate `typecheck/*.json`, then run `npm test`. If tsc now fails, update
+  `lib/index.d.ts` (and the JSDoc typedefs in `diff.js` / `parse.js`) to match.
+- Added a new variant to the result? Extend the `types-a.dbml` / `types-b.dbml`
+  fixture pair so its diff produces it, and the type check sees it.
+
 Thanks for looking.

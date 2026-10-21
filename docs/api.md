@@ -47,6 +47,8 @@ Structurally diffs two DBML documents and returns the result object below. `opts
 
 Every column in the result is `{ name, type, notNull, pk, note }` (`type` is a string, `notNull` and `pk` are booleans, `note` is a string or `null`). Enum entries are `{ name, values }`, groups `{ name, tables }`, and ref endpoints `{ table, columns }`.
 
+`emitJson(result)` is `JSON.stringify(result, null, 2)`, so the parsed JSON has exactly this shape too.
+
 ## Emitters
 
 Each emitter takes the `diff()` result and returns a string.
@@ -74,3 +76,38 @@ const svg = await renderSvg(result, { oldLabel: 'v1', newLabel: 'v2' });
 Options: everything `emitD2` takes, plus `sketch` (hand-drawn style, default `false`) and `scale` (default `1`, which renders at natural size rather than fitting to screen).
 
 Rendering needs the optional [`@terrastruct/d2`](https://www.npmjs.com/package/@terrastruct/d2) package, which is **not** a hard dependency (it ships a multi-megabyte WASM blob). Install it with `npm i @terrastruct/d2`. If it is absent, `renderSvg` rejects with an error whose `code` is `D2_NOT_INSTALLED` and whose message carries the install hint. `emitD2` needs nothing extra, so `--format d2` (or `emitD2`) is the no-install path.
+
+## TypeScript
+
+The package ships hand-written declarations (`lib/index.d.ts`, referenced by the `types` field in `package.json`), so no `@types` package is needed. Every function above is declared with the signature and options documented here, plus the `date` option (a `Date` or date string for the header stamp, default today) that `emitDbml`, `emitD2`, `emitMigration` and `renderSvg` already accept.
+
+```ts
+import { diff, emitDbml } from 'dbml-diff';
+import type { DiffResult, ModifiedGroup } from 'dbml-diff';
+
+const result: DiffResult = diff(oldDbmlString, newDbmlString);
+const dbml = emitDbml(result, { oldLabel: 'v1', newLabel: 'v2' });
+```
+
+Exported types:
+
+| Type | Shape |
+| --- | --- |
+| `DiffResult` | the return value of `diff()`, and of `JSON.parse(emitJson(result))` |
+| `Column` | `{ name, type, notNull, pk, note }` (`note` is `string \| null`) |
+| `TableEntry` | added / removed table: `{ name, columns }` |
+| `ModifiedTable` | `{ name, columns, columnsAdded, columnsRemoved, columnsChanged, renames }` |
+| `ColumnChange` | `{ column, changes }` |
+| `RenameCandidate` | `{ from, to }`, both `Column` |
+| `EnumEntry` | added / removed enum: `{ name, values }` |
+| `ModifiedEnum` | `{ name, values, valuesAdded, valuesRemoved }` |
+| `GroupDef` | added / removed group: `{ name, tables }` |
+| `ModifiedGroup` | `{ name, tablesAdded, tablesRemoved }` (no `tables`) |
+| `RefEndpoint` | `{ table, columns }` |
+| `RefDef` | added / removed ref: `{ from, to }` |
+| `RetargetedRef` | `{ from, oldTo, newTo }` |
+| `UnresolvedRef` | `{ from, oldTargets, newTargets }` |
+| `DiffOptions` | `diff()` options |
+| `EmitDbmlOptions`, `EmitD2Options`, `EmitMigrationOptions`, `RenderSvgOptions` | emitter options |
+
+`counts` is `{ added, removed, modified }` and counts tables only. The `npm test` type check verifies the declarations against the real `emitJson` output of fixtures covering every variant above, in both directions: a field the output has but the types lack fails, and so does a declared field the output lacks.

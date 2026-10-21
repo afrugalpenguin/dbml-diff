@@ -1,0 +1,72 @@
+// New side of the type-coverage fixture (see types-a.dbml).
+
+Enum status {
+  active
+  suspended
+}
+
+Enum priority {
+  low
+  high
+}
+
+Table customers {
+  id int [pk]
+  name nvarchar [not null, note: 'display name']
+  phone int
+}
+
+Table products {
+  id int [pk]
+  name varchar
+}
+
+Table regions {
+  id int [pk]
+}
+
+Table suppliers {
+  id int [pk]
+}
+
+Table warehouses {
+  id int [pk]
+}
+
+Table shipments {
+  id int [pk]
+  order_id int [not null]
+}
+
+Table orders {
+  id int [pk]
+  customer_id int
+  product_id int
+  region_id int
+  supplier_id int
+  status status
+}
+
+Table invoices {
+  id int [pk]
+  order_id int
+}
+
+TableGroup sales {
+  orders
+  invoices
+}
+
+TableGroup logistics {
+  shipments
+}
+
+Ref: orders.customer_id > customers.id
+// added
+Ref: orders.product_id > products.id
+// retargeted: regions -> warehouses
+Ref: orders.region_id > warehouses.id
+// unresolved: one old target, two new targets on the same FK side
+Ref: orders.supplier_id > warehouses.id
+Ref: orders.supplier_id > regions.id
+// invoices.order_id > orders.id removed
