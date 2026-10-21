@@ -153,6 +153,13 @@
               "pk": false,
               "note": null
             },
+            "before": {
+              "name": "EnrolledOn",
+              "type": "DATETIME",
+              "notNull": true,
+              "pk": false,
+              "note": null
+            },
             "changes": [
               "was NOT NULL, now nullable"
             ]
@@ -193,6 +200,13 @@
               "name": "Surcharge",
               "type": "DECIMAL(11,8)",
               "notNull": false,
+              "pk": false,
+              "note": null
+            },
+            "before": {
+              "name": "Surcharge",
+              "type": "DECIMAL(11,8)",
+              "notNull": true,
               "pk": false,
               "note": null
             },
@@ -252,6 +266,13 @@
             "column": {
               "name": "ProcessedOn",
               "type": "BIGINT",
+              "notNull": false,
+              "pk": false,
+              "note": null
+            },
+            "before": {
+              "name": "ProcessedOn",
+              "type": "DATETIME",
               "notNull": false,
               "pk": false,
               "note": null

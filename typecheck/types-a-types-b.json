@@ -95,6 +95,13 @@
               "pk": false,
               "note": "display name"
             },
+            "before": {
+              "name": "name",
+              "type": "varchar",
+              "notNull": false,
+              "pk": false,
+              "note": "display name"
+            },
             "changes": [
               "type varchar -> nvarchar",
               "was nullable, now NOT NULL"

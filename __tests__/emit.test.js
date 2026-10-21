@@ -717,3 +717,31 @@ Table t {
     expect(typeof require('../lib').emitD2).toBe('function');
   });
 });
+
+describe('emitMigration reads before, not the change phrases (#139)', () => {
+  const cases = {
+    'type change': ['Table t {\n  Id int [pk]\n  a datetime\n}', 'Table t {\n  Id int [pk]\n  a bigint\n}'],
+    'nullable to NOT NULL': ['Table t {\n  Id int [pk]\n  a int\n}', 'Table t {\n  Id int [pk]\n  a int [not null]\n}'],
+    'NOT NULL to nullable': ['Table t {\n  Id int [pk]\n  a int [not null]\n}', 'Table t {\n  Id int [pk]\n  a int\n}'],
+    'became PK': ['Table t {\n  a int\n}', 'Table t {\n  a int [pk]\n}'],
+    'no longer PK': ['Table t {\n  a int [pk]\n}', 'Table t {\n  a int\n}'],
+    'note only': ["Table t {\n  Id int [pk]\n  a int [note: 'x']\n}", "Table t {\n  Id int [pk]\n  a int [note: 'y']\n}"],
+  };
+  const changed = (r, fn) => {
+    const copy = JSON.parse(emitJson(r));
+    for (const m of copy.tables.modified) for (const ch of m.columnsChanged) fn(ch);
+    return copy;
+  };
+
+  test.each(Object.entries(cases))('%s: reworded phrases do not change the SQL', (_, [a, b]) => {
+    const r = diff(a, b, { includeNotes: true });
+    const reworded = changed(r, (ch) => { ch.changes = ch.changes.map(() => 'reworded'); });
+    expect(emitMigration(reworded, { date: DATE })).toBe(emitMigration(r, { date: DATE }));
+  });
+
+  test.each(Object.entries(cases))('%s: a result without before (1.2.0 and earlier) gives the same SQL', (_, [a, b]) => {
+    const r = diff(a, b, { includeNotes: true });
+    const legacy = changed(r, (ch) => { delete ch.before; });
+    expect(emitMigration(legacy, { date: DATE })).toBe(emitMigration(r, { date: DATE }));
+  });
+});

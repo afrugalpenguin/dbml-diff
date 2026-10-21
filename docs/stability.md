@@ -16,7 +16,7 @@
 
 - The exact wording and layout of `--format text` output. It is meant to be read by a human, not parsed; scripts should use `--format json`.
 - The exact wording of the stderr counts summary. A summary is always printed to stderr, but its text is for humans; scripts should key off the exit code and `--format json`.
-- The human-readable phrases in `columnsChanged[].changes` (for example `type int -> bigint`, `became PK`). The array is part of the return shape, but the exact wording may change in a minor; consumers should key off the structured fields, not the phrases.
+- The human-readable phrases in `columnsChanged[].changes` (for example `type int -> bigint`, `became PK`). The array is part of the return shape, but the exact wording may change in a minor; consumers should key off the structured fields (`before` and `column`), not the phrases.
 - The layout of the annotated `--format dbml` document: table stubbing, the `DIFF SUMMARY` table, column annotations, and note text. These render a diagram and are tuned for readability, not for machine consumption.
 - The `--format d2` source and the `--format svg` output: shape layout, grid sizing, row markers, tooltip text, and colours are tuned for a readable diagram, not frozen. The exact SVG also tracks the installed `@terrastruct/d2` version, which is an optional dependency the caller controls, not one this project pins.
 - The generated `--migrate` T-SQL: statement ordering, comments, and synthesized constraint names. `--migrate` is T-SQL-only and its output is a starting point for review, not a frozen contract.

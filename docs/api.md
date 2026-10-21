@@ -21,7 +21,7 @@ Structurally diffs two DBML documents and returns the result object below. `opts
 //       name,
 //       columns: [...],             // full column list after the change
 //       columnsAdded: [...], columnsRemoved: [...],
-//       columnsChanged: [ { column, changes: ['type X -> Y', ...] } ], // changes: human-readable
+//       columnsChanged: [ { column, before, changes: ['type X -> Y', ...] } ], // column/before: new/old column objects; changes: human-readable
 //       renames: [ { from, to } ]   // from/to are column objects; heuristic candidates only
 //     } ]
 //   },
@@ -97,7 +97,7 @@ Exported types:
 | `Column` | `{ name, type, notNull, pk, note }` (`note` is `string \| null`) |
 | `TableEntry` | added / removed table: `{ name, columns }` |
 | `ModifiedTable` | `{ name, columns, columnsAdded, columnsRemoved, columnsChanged, renames }` |
-| `ColumnChange` | `{ column, changes }` |
+| `ColumnChange` | `{ column, before, changes }`: `column` and `before` are the new and old `Column`; `before` is optional because results from 1.2.0 and earlier lack it |
 | `RenameCandidate` | `{ from, to }`, both `Column` |
 | `EnumEntry` | added / removed enum: `{ name, values }` |
 | `ModifiedEnum` | `{ name, values, valuesAdded, valuesRemoved }` |
