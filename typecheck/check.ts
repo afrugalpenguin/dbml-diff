@@ -21,7 +21,7 @@ type NoExtraKeys<T, S> =
   : T extends object
     ? (S extends object
       ? (Exclude<keyof T, keyof S> extends never
-        ? ({ [K in keyof T & keyof S]: NoExtraKeys<T[K], S[K]> }[keyof T & keyof S] extends true ? true : false)
+        ? ({ [K in keyof T & keyof S]: NoExtraKeys<T[K], NonNullable<S[K]>> }[keyof T & keyof S] extends true ? true : false)
         : false)
       : false)
   : true;

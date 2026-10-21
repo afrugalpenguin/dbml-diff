@@ -93,6 +93,16 @@ Table audit { id int [pk] }`;
     expect(m.columnsChanged[0].changes).toEqual(['type datetime -> bigint']);
   });
 
+  test('a changed column carries the old column as before (#139)', () => {
+    const a = `Table users { id int [pk]
+  settled datetime [note: 'old'] }`;
+    const b = `Table users { id int [pk]
+  settled bigint [not null, note: 'new'] }`;
+    const ch = diff(a, b).tables.modified[0].columnsChanged[0];
+    expect(ch.before).toEqual({ name: 'settled', type: 'datetime', notNull: false, pk: false, note: 'old' });
+    expect(ch.column).toEqual({ name: 'settled', type: 'bigint', notNull: true, pk: false, note: 'new' });
+  });
+
   test('detects nullability change: NOT NULL -> nullable', () => {
     const a = `Table users { id int [pk]
   name varchar(50) [not null] }`;

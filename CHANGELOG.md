@@ -10,6 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - TypeScript declarations for the whole public API ship with the package (`lib/index.d.ts`, via the `types` field), so `import type { DiffResult } from 'dbml-diff'` works with no extra install. `DiffResult` covers every variant of the `diff()` / `emitJson()` result, including modified groups (`tablesAdded` / `tablesRemoved`), enum changes, and retargeted and unresolved refs; every exported function and its options are declared too. Types only: runtime behaviour and output are unchanged. `npm test` now also runs `tsc`, checking the declarations against the real `emitJson` output of fixtures that cover every variant. (#137)
+- `columnsChanged[]` entries now carry `before`, the column as it appears in the old schema, next to `column` (the new one). Consumers can compare the two structured columns instead of reading the human-readable `changes` phrases, whose wording is not covered by semver. Additive: `column` and `changes` are unchanged. (#139)
+
+### Changed
+
+- `--migrate` decides its `ALTER COLUMN`, NOT NULL warning and PK constraint statements from `before` and `column` instead of matching the `changes` phrases. The SQL is unchanged for every fixture. Results from 1.2.0 and earlier, which have no `before`, still migrate as before. (#139)
 
 ## [1.2.0] - 2026-10-20
 

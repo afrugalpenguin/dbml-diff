@@ -22,6 +22,11 @@ export interface TableEntry {
 export interface ColumnChange {
   /** The column as it appears in the new schema */
   column: Column;
+  /**
+   * The column as it appears in the old schema. Always set by diff(); absent
+   * in results from dbml-diff 1.2.0 and earlier.
+   */
+  before?: Column;
   /** Human-readable change descriptions; the wording is not covered by semver */
   changes: string[];
 }
