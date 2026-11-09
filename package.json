@@ -42,7 +42,7 @@
     "types:fixtures": "node scripts/build-type-fixtures.js"
   },
   "dependencies": {
-    "@dbml/core": "10.3.1",
+    "@dbml/core": "11.1.0",
     "pako": "3.0.2"
   },
   "peerDependencies": {
